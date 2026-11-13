@@ -1,0 +1,43 @@
+name: Bug report
+description: The engine did something wrong, or failed where it should not.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. A security problem goes through the **Security** tab instead (SECURITY.md), never here.
+        Remove organization names, logins, URLs and anything else private from the output you paste.
+  - type: input
+    id: version
+    attributes:
+      label: Engine version
+      description: The first line of every run, such as `github-org-bootstrap 1.0.0`.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Output of `$PSVersionTable.PSVersion; gh --version`, and the operating system.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran (`-WhatIf`, `-ValidateOnly`, ...) and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: The relevant part of the run's output, with private values removed.
+      render: text
+  - type: textarea
+    id: config
+    attributes:
+      label: Config excerpt
+      description: The part of the config the problem is about, with private values removed.
+      render: json

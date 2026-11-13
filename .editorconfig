@@ -1,0 +1,32 @@
+root = true
+
+# Editors read this file; editorconfig-checker checks every tracked file against it in CI, indent sizes included.
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,jsonc,yml,yaml}]
+indent_size = 2
+
+# Lists and wrapped lines of Markdown are indented by 2 or 3 spaces; markdownlint checks list indentation (MD007).
+[*.md]
+trim_trailing_whitespace = false
+indent_size = unset
+
+# PSScriptAnalyzer checks the indentation of the code (PSUseConsistentIndentation, 4 spaces); help text and
+# here-strings hold other indentation, which a check of the leading spaces alone would report.
+[*.{ps1,psm1,psd1}]
+indent_size = unset
+
+# Shell scripts.
+[.githooks/*]
+indent_size = 2
+
+# The license text is kept exactly as the Apache Software Foundation publishes it.
+[LICENSE]
+indent_size = unset

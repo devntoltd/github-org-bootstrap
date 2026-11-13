@@ -1,0 +1,172 @@
+{
+  // Terminal > Run Task... (or Run Test Task for the default test task). Every task runs ./build.ps1 <name>: the commands live in build.psd1.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "All checks",
+      "detail": "Every check of CI in a row, then a summary; exits non-zero when one failed",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "all"],
+      "options": { "cwd": "${workspaceFolder}" },
+      // Ctrl+Shift+B: the only task key VS Code binds by default.
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Tests with coverage",
+      "detail": "All tests, coverage per file, coverage.xml for Coverage Gutters",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "tests"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint",
+      "detail": "PSScriptAnalyzer, every rule with the repository settings, as CI runs it; prints nothing when clean",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "lint"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "EditorConfig",
+      "detail": "editorconfig-checker: every file against .editorconfig, the version CI uses",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "editorconfig"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Markdown lint",
+      "detail": "markdownlint-cli2, the version CI uses",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "markdownlint"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Markdown links",
+      "detail": "lychee: relative links and #anchors between the docs, as CI runs it",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "links"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "shellcheck",
+      "detail": "shellcheck on the pre-commit hook",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "shellcheck"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "actionlint",
+      "detail": "actionlint (with shellcheck) on the workflows",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "actionlint"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "zizmor",
+      "detail": "zizmor, pedantic, online audits (GH_TOKEN or gh auth)",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "zizmor"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Secret scan",
+      "detail": "Betterleaks over the full git history, as CI runs it",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "secrets"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Build config schemas",
+      "detail": "Regenerate engine/github.schema.json after changing a shape",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "schemas"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build settings reference",
+      "detail": "Regenerate engine/settings.md after changing a row, a page or the endpoint catalog",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "reference"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install dev tools",
+      "detail": "tools/Install-DevTools.ps1: the tools and modules of the checks",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "install"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Recurring reminders",
+      "detail": "Status of the recurring operations (-WhatIf, opens no issue)",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "reminders"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "GitHub API version",
+      "detail": "Pinned and latest GitHub REST API version (-WhatIf, opens no issue)",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "api-version"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "API endpoint catalog",
+      "detail": "The endpoint catalog of the engine against the OpenAPI description of the pinned version (-WhatIf, opens no issue)",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "endpoints"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dependency updates",
+      "detail": "Module and tool versions newer than the lock and out of the 7-day quarantine",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "updates"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dependency update issue",
+      "detail": "Status of the dependency update issue (-WhatIf, opens no issue)",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "dependencies"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

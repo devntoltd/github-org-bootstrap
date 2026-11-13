@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-vscode.powershell",
+    "pspester.pester-test",
+    "ryanluker.vscode-coverage-gutters",
+    "github.vscode-github-actions",
+    "editorconfig.editorconfig"
+  ]
+}

@@ -1,0 +1,2 @@
+# Commits that only reformat code, one full SHA per line; git blame skips them (tools/Install-DevTools.ps1 sets
+# blame.ignoreRevsFile, GitHub reads the file by itself).

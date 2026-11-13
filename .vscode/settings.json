@@ -1,0 +1,10 @@
+{
+  // Same analyzer rules as CI, formatting rules included (PSAvoidUsingWriteHost is excluded on purpose).
+  "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+  // Formats like Invoke-Formatter -Settings ./PSScriptAnalyzerSettings.psd1; format-on-save is left to the user.
+  // Line endings, final newline and trailing whitespace come from .editorconfig (EditorConfig extension).
+  "powershell.codeFormatting.preset": "Stroustrup",
+  "powershell.pester.codeLens": false,
+  // The decisions are history (docs/decisions/README.md): kept out of search, still in the explorer.
+  "search.exclude": { "docs/decisions/2*.md": true }
+}

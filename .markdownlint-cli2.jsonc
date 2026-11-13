@@ -1,0 +1,22 @@
+{
+  // Markdown lint for the repository docs (npx markdownlint-cli2; CI runs the same).
+  "config": {
+    "default": true,
+    // Prose is written one paragraph per line; long tables and commands cannot wrap.
+    "MD013": false,
+    // One style for the whole repository, not only within a file (the default "consistent").
+    "MD003": { "style": "atx" },
+    "MD004": { "style": "dash" },
+    "MD029": { "style": "one_or_ordered" },
+    "MD035": { "style": "---" },
+    "MD046": { "style": "fenced" },
+    "MD048": { "style": "backtick" },
+    "MD049": { "style": "asterisk" },
+    "MD050": { "style": "asterisk" },
+    "MD055": { "style": "leading_and_trailing" }
+  },
+  "globs": ["**/*.md"],
+  // The decisions are dated records, not edited after the fact (CONTRIBUTING.md): linting them would mean rewriting
+  // history. Lint the living docs only, the index of the decisions (docs/decisions/README.md) included.
+  "ignores": ["docs/decisions/2*.md", "node_modules/**"]
+}

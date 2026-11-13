@@ -1,0 +1,4 @@
+# Code coverage report written by tools/Invoke-Coverage.ps1.
+coverage.xml
+# A pinned engine checked out by engine/examples/run.ps1 in a config repository.
+.engine/

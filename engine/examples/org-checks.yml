@@ -1,0 +1,112 @@
+# Reference copy of the central workflow. The running copy is .github/workflows/org-checks.yml of the organization's
+# .github repository, which the organization ruleset of the engine requires on every pull request. A change starts here:
+# copy the file to .github by a pull request there, then put the merge commit of that pull request into the ruleset's
+# sha in github.json. Tool versions and SHA-256 sums are those of dev-tools.psd1 and ci.yml (a test keeps them equal).
+name: Organization checks
+
+on:
+  pull_request:
+  merge_group:
+
+# Least privilege for GITHUB_TOKEN, whatever the organization default is.
+permissions:
+  contents: read
+
+# One run per pull request or merge queue entry: a new push cancels the run of the previous one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Every checkout sets persist-credentials: false, so GITHUB_TOKEN is not left in .git/config: no step after the
+  # checkout needs it there, and the release binaries each job downloads and runs could read it.
+
+  workflows:
+    name: Workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Guard, keep it: the ruleset requires this workflow in every repository, also in a new or docs-only one with
+      # nothing to lint, and there actionlint and zizmor both fail (exit 3: "no project was found", "no inputs
+      # collected"). Each runs only when the repository has files it checks: actionlint the workflows, zizmor also
+      # the action metadata files and the Dependabot config.
+      - name: Find workflow files
+        id: inputs
+        run: |
+          workflows=$(git ls-files -- ':(glob).github/workflows/*.yml' ':(glob).github/workflows/*.yaml')
+          others=$(git ls-files -- ':(glob)**/action.yml' ':(glob)**/action.yaml' .github/dependabot.yml .github/dependabot.yaml)
+          if [ -n "$workflows" ]; then actionlint=true; else actionlint=false; fi
+          if [ -n "$workflows$others" ]; then zizmor=true; else zizmor=false; fi
+          echo "actionlint=$actionlint" >> "$GITHUB_OUTPUT"
+          echo "zizmor=$zizmor" >> "$GITHUB_OUTPUT"
+          echo "actionlint: $actionlint, zizmor: $zizmor"
+
+      # Shell scripts of the run: steps, checked through actionlint below. Pinned like actionlint instead of the
+      # runner's copy, so a new runner image cannot change the result.
+      - name: shellcheck
+        if: steps.inputs.outputs.actionlint == 'true'
+        env:
+          VERSION: 0.11.0
+          SHA256: b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6
+        run: |
+          archive="$RUNNER_TEMP/shellcheck.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/koalaman/shellcheck/releases/download/v${VERSION}/shellcheck-v${VERSION}.linux.x86_64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" --strip-components=1 "shellcheck-v${VERSION}/shellcheck"
+
+      # Correctness of the workflows of the repository: expression types, action inputs, shellcheck on run: scripts.
+      # The release binary is pinned by version and SHA-256 (the digest GitHub shows for the release asset).
+      - name: actionlint
+        if: steps.inputs.outputs.actionlint == 'true'
+        env:
+          VERSION: 1.7.12
+          SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color -shellcheck="$RUNNER_TEMP/shellcheck"
+
+      # Security: template injection, dangerous triggers, unpinned actions, impostor commits. Online audits use the
+      # job's read-only token. The default persona: the pedantic one reports code smells that should not block every
+      # team's pull requests. advanced-security: false because code scanning needs GitHub Advanced Security on private
+      # repositories.
+      - name: zizmor
+        if: steps.inputs.outputs.zizmor == 'true'
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          version: 1.31.1
+          advanced-security: false
+          annotations: true
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the commits of the pull request need their base
+          persist-credentials: false
+
+      # Scans only the commits of the pull request (or of the merge queue entry), so the check stays fast in large
+      # repositories; the history from before the ruleset is scanned once per repository by hand. The SHAs come
+      # through env:, never interpolated into the script. --redact keeps a found secret out of the job log. --validation is off on purpose:
+      # it would send what it finds to the providers' APIs. The release binary is pinned by version and SHA-256.
+      - name: Betterleaks
+        env:
+          VERSION: 1.9.0
+          SHA256: f8b185a39ffcece2a1ca82bf3a4e7435cd81963ffd16b7a9128daf75f35f6de7
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        run: |
+          archive="$RUNNER_TEMP/betterleaks.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/betterleaks/betterleaks/releases/download/v${VERSION}/betterleaks_${VERSION}_linux_x64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" betterleaks
+          "$RUNNER_TEMP/betterleaks" git --redact --verbose --no-banner --log-opts="$BASE_SHA..$HEAD_SHA" .

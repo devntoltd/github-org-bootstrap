@@ -1,0 +1,27 @@
+name: Feature request
+description: A setting the engine should manage or check, or another improvement.
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The engine manages organization settings only. Repositories, teams, members and collaborators are out of scope
+        (README.md, "What it never does").
+  - type: textarea
+    id: need
+    attributes:
+      label: What you need
+      description: The setting or behavior, and why your organization needs it.
+    validations:
+      required: true
+  - type: textarea
+    id: github
+    attributes:
+      label: Where GitHub has it
+      description: The settings page (`https://github.com/organizations/<org>/settings/...`) and the REST API endpoint, if you know them.
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended value
+      description: The value you would recommend for every organization, and why; or why it is the organization's decision.

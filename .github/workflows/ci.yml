@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege for GITHUB_TOKEN, whatever the organization default is.
+permissions:
+  contents: read
+
+# One run per pull request: a new push cancels the run of the previous one. Pushes to main are never
+# cancelled, so every commit on main keeps its own complete result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Every checkout sets persist-credentials: false: no later step needs GITHUB_TOKEN in .git/config,
+  # and third-party code runs in every job (npx, PowerShell Gallery modules, release binaries).
+
+  workflows:
+    name: Workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Shell scripts: the pre-commit hook here, the run: scripts of the workflows through actionlint below. Pinned
+      # like actionlint instead of the runner's copy, so a new runner image cannot change the result; default severity
+      # (style included), the same as actionlint uses.
+      - name: shellcheck
+        env:
+          VERSION: 0.11.0
+          SHA256: b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6
+        run: |
+          archive="$RUNNER_TEMP/shellcheck.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/koalaman/shellcheck/releases/download/v${VERSION}/shellcheck-v${VERSION}.linux.x86_64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" --strip-components=1 "shellcheck-v${VERSION}/shellcheck"
+          "$RUNNER_TEMP/shellcheck" .githooks/pre-commit
+
+      # Correctness: expression types, action inputs, shellcheck on run: scripts (the pinned one from the step above).
+      # actionlint has no official action, so the release binary is pinned by version and SHA-256
+      # (the digest GitHub shows for the release asset); Dependabot does not update it. The files are named to reach the
+      # reference copy engine/examples/org-checks.yml, so a new workflow is named here and in build.psd1 (a test checks both).
+      - name: actionlint
+        env:
+          VERSION: 1.7.12
+          SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_linux_amd64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color -shellcheck="$RUNNER_TEMP/shellcheck" .github/workflows/ci.yml .github/workflows/recurring.yml engine/examples/org-checks.yml
+
+      # Security: template injection, dangerous triggers, unpinned actions, impostor commits. Online audits use
+      # the job's read-only token. The action runs the zizmor image pinned by digest for the given version.
+      # advanced-security: false because code scanning needs GitHub Advanced Security on private repositories.
+      # The pedantic persona also reports code smells (permissions for the whole workflow, undocumented
+      # permissions, no concurrency limits); the auditor persona accepts false positives, so it is not a gate.
+      # min-confidence and min-severity are left unset, so no finding is filtered out.
+      - name: zizmor
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          version: 1.31.1
+          persona: pedantic
+          inputs: . engine/examples/org-checks.yml
+          advanced-security: false
+          annotations: true
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the full history, not only the last commit
+          persist-credentials: false
+
+      # Betterleaks (successor of gitleaks) has no action; the release binary is pinned by version and SHA-256.
+      # --redact keeps a found secret out of the job log, which everyone with read access can see.
+      # Default rules and confidence, as in .githooks/pre-commit: --confidence low over the full history found nothing
+      # more. --validation is off on purpose: it would send what it finds to the providers' APIs.
+      - name: Betterleaks
+        env:
+          VERSION: 1.9.0
+          SHA256: f8b185a39ffcece2a1ca82bf3a4e7435cd81963ffd16b7a9128daf75f35f6de7
+        run: |
+          archive="$RUNNER_TEMP/betterleaks.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/betterleaks/betterleaks/releases/download/v${VERSION}/betterleaks_${VERSION}_linux_x64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" betterleaks
+          "$RUNNER_TEMP/betterleaks" git --redact --verbose --no-banner .
+
+  test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    # A normal run takes about 2 minutes; a hung step would otherwise run for the default 6 hours.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The modules of the checks, exactly the versions of the Modules of dev-tools.psd1 (modules.lock.psd1 is empty:
+      # the engine needs no runtime module). No cache: every run installs what a contributor gets.
+      - name: Install modules
+        shell: pwsh
+        run: |
+          # The runner image's PowerShell; every bootstrap.ps1 requires 7.6.
+          Write-Host "Using PowerShell $($PSVersionTable.PSVersion)"
+          ./tools/Install-DevTools.ps1 -ModulesOnly
+
+      # Every analyzer rule, one per call (the script says why); fails on a finding or an error of the analyzer.
+      - name: Lint
+        shell: pwsh
+        run: ./tools/Invoke-Lint.ps1
+
+      # .editorconfig (charset, line endings, final newline, trailing whitespace, tabs, indent size) for every tracked
+      # file, every check on; .editorconfig says which files leave the indent size to another tool. No action is needed
+      # for a single binary: the release is pinned by version and SHA-256 like actionlint; Dependabot does not update it.
+      - name: EditorConfig
+        env:
+          VERSION: 4.0.2
+          SHA256: 44efaef3ed14c6ab52eb87481d78e5e5c204796dccf26e2f4598a61ba17f8003
+        run: |
+          archive="$RUNNER_TEMP/editorconfig-checker.tar.gz"
+          curl -fsSL --retry 10 --retry-delay 30 --retry-max-time 300 -o "$archive" "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/v${VERSION}/editorconfig-checker-linux-amd64.tar.gz"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" editorconfig-checker
+          "$RUNNER_TEMP/editorconfig-checker"
+
+      # Node.js is preinstalled on the runner; the version is pinned so a new release cannot fail an unchanged tree.
+      - name: Markdown lint
+        run: npx --yes markdownlint-cli2@0.23.3
+
+      # Relative links and #anchors between the docs. --offline skips external URLs, and they are not checked online
+      # either (a deliberate choice): there are few, mostly docs.github.com and learn.microsoft.com, which redirect moved
+      # pages; and lychee checks a github.com link to a private repository only for the repository, with a token, or
+      # not at all, without one: never the file or the #anchor. A scheduled run is the place for it if that changes.
+      # lycheeVersion is set although it is the action's default: dev-tools.psd1 pins the same version for local runs,
+      # and a Dependabot update of the action must not change it silently (a test keeps both equal).
+      # Every Markdown file but the dated decisions of docs/decisions, records that are not edited afterwards, as in
+      # .markdownlint-cli2.jsonc; their index, docs/decisions/README.md, is checked. The exclusion is a regex
+      # whose "." matches either path separator, single-quoted because the action runs args through eval. The glob
+      # skips dot folders such as .github.
+      - name: Markdown links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          lycheeVersion: v0.24.2
+          args: --offline --include-fragments --no-progress '--exclude-path=decisions.\d{4}-' './**/*.md'
+          fail: true
+
+
+      # Fails on a failed test or on coverage below the script's target; the per-file table goes to the job summary.
+      - name: Test and coverage
+        shell: pwsh
+        run: ./tools/Invoke-Coverage.ps1 -Output Detailed

@@ -1,0 +1,1945 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "github-org-bootstrap config",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "markdownDescription": "This schema, for the editor."
+    },
+    "configVersion": {
+      "type": "string",
+      "markdownDescription": "The config format this config is written in. The engine reads its own major version up to its own minor version.",
+      "pattern": "^(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})$"
+    },
+    "organization": {
+      "type": "string",
+      "markdownDescription": "The organization login.",
+      "pattern": "^[A-Za-z0-9-]+$"
+    },
+    "inventory": {
+      "type": "object",
+      "markdownDescription": "What the organization is expected to have; compared on every run, never changed.",
+      "properties": {
+        "owners": {
+          "type": "array",
+          "markdownDescription": "Logins of the owners, at least one.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "apps": {
+          "type": "array",
+          "markdownDescription": "One entry per installed GitHub App, as its installation shows it; [] for none.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$"
+              },
+              "repositorySelection": {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "selected"
+                ]
+              },
+              "permissions": {
+                "type": "object",
+                "patternProperties": {
+                  "^[a-z_]+$": {
+                    "type": "string",
+                    "enum": [
+                      "read",
+                      "write",
+                      "admin"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "slug",
+              "repositorySelection",
+              "permissions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "webhookHosts": {
+          "type": "array",
+          "markdownDescription": "Hosts of the organization webhooks, not the URL, which can be a secret; an internationalized host in its xn-- form. [] for none.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*$"
+          },
+          "uniqueItems": true
+        },
+        "outsideCollaborators": {
+          "type": "array",
+          "markdownDescription": "Logins of the outside collaborators; [] for none.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "owners",
+        "apps",
+        "webhookHosts",
+        "outsideCollaborators"
+      ],
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "default_repository_permission": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"none\"`. Members see only the repositories they are given; a base permission opens every private repository to every member, a compromised account included.",
+          "default": "none",
+          "enum": [
+            "read",
+            "write",
+            "admin",
+            "none"
+          ]
+        },
+        "members_can_create_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Owners create repositories, so each one is deliberate and gets the organization settings.",
+          "default": false
+        },
+        "members_can_create_public_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A public repository created by mistake publishes its code and history to everyone.",
+          "default": false
+        },
+        "members_can_create_private_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Owners create repositories, so each one is deliberate and gets the organization settings.",
+          "default": false
+        },
+        "members_can_create_pages": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A Pages site publishes repository content to the internet, from private repositories too.",
+          "default": false
+        },
+        "members_can_fork_private_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A fork of a private repository keeps its code in a personal account, outside the organization.",
+          "default": false
+        },
+        "deploy_keys_enabled_for_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A deploy key is a repository credential that belongs to no person and never expires; turning this off also disables existing keys.",
+          "default": false
+        },
+        "email": {
+          "type": "string",
+          "markdownDescription": "Public contact address on the organization page, where security reports go. Project data: the contact address of the organization.",
+          "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        },
+        "is_verified": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `true`. A verified domain shows people that this is the real organization.",
+          "default": true
+        },
+        "two_factor_requirement_enabled": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `true`. A stolen password alone must not be enough to act as a member.",
+          "default": true
+        },
+        "members_can_delete_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Deleting or transferring a repository loses its code and history; only owners should.",
+          "default": false
+        },
+        "members_can_change_repo_visibility": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Making a private repository public publishes it; only owners should decide.",
+          "default": false
+        },
+        "members_can_invite_outside_collaborators": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Outside collaborators get repository access without being members, so nobody reviews them with the members. Only GitHub Enterprise Cloud can restrict it: on other plans, keep true with an exception.",
+          "default": false
+        },
+        "members_can_create_teams": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Teams grant repository access; only owners should create them.",
+          "default": false
+        },
+        "members_can_delete_issues": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Deleting an issue removes its record for good.",
+          "default": false
+        },
+        "readers_can_create_discussions": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Read access is for reading; starting discussions needs write access.",
+          "default": false
+        },
+        "members_can_create_public_pages": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A public Pages site publishes repository content to everyone.",
+          "default": false
+        },
+        "members_can_create_private_pages": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A Pages site publishes repository content beyond the repository, with or without access control.",
+          "default": false
+        },
+        "display_commenter_full_name_setting_enabled": {
+          "type": "boolean",
+          "markdownDescription": "Shows the profile name of a comment author in the pull requests of private repositories. Owner decides: who sees profile names is a matter of privacy within the organization, not of security."
+        },
+        "web_commit_signoff_required": {
+          "type": "boolean",
+          "markdownDescription": "Contributors sign off the commits they make in the web interface, such as for a Developer Certificate of Origin; the page shows false as \"No policy\". Owner decides: a sign-off policy, such as a Developer Certificate of Origin, is a legal process, not a security setting."
+        },
+        "default_repository_branch": {
+          "type": "string",
+          "markdownDescription": "The default branch of new repositories. Project data: the branch name the projects use.",
+          "pattern": "^\\S+$"
+        },
+        "has_organization_projects": {
+          "type": "boolean",
+          "markdownDescription": "Members can create projects of the organization. Owner decides: whether the organization plans its work in GitHub Projects."
+        },
+        "has_repository_projects": {
+          "type": "boolean",
+          "markdownDescription": "Repositories of the organization can have projects; no settings page shows it. Owner decides: whether the organization plans its work in GitHub Projects."
+        },
+        "members_can_view_dependency_insights": {
+          "type": "boolean",
+          "markdownDescription": "Members can see the dependency insights of the organization; no settings page of GitHub Team shows it. Owner decides: GitHub Team shows no page and has no API to change it, so a recommendation could only be waived."
+        },
+        "secret_scanning_push_protection_custom_link": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "markdownDescription": "A link shown when push protection blocks a commit, or null. Project data: a link to the organization's own guidance, where it has one.",
+          "pattern": "^https://\\S+$"
+        },
+        "secret_scanning_validity_checks_enabled": {
+          "type": "boolean",
+          "markdownDescription": "GitHub checks whether a found secret is still valid; it needs Secret Protection, which budgets stop. Owner decides: it needs Secret Protection, a paid product the budgets stop; buying it is a decision of its own."
+        }
+      },
+      "required": [
+        "default_repository_permission",
+        "members_can_create_repositories",
+        "members_can_create_public_repositories",
+        "members_can_create_private_repositories",
+        "members_can_create_pages",
+        "members_can_fork_private_repositories",
+        "deploy_keys_enabled_for_repositories",
+        "email",
+        "is_verified",
+        "two_factor_requirement_enabled",
+        "members_can_delete_repositories",
+        "members_can_change_repo_visibility",
+        "members_can_invite_outside_collaborators",
+        "members_can_create_teams",
+        "members_can_delete_issues",
+        "readers_can_create_discussions",
+        "members_can_create_public_pages",
+        "members_can_create_private_pages",
+        "display_commenter_full_name_setting_enabled",
+        "web_commit_signoff_required",
+        "default_repository_branch",
+        "has_organization_projects",
+        "has_repository_projects",
+        "members_can_view_dependency_insights",
+        "secret_scanning_push_protection_custom_link",
+        "secret_scanning_validity_checks_enabled"
+      ],
+      "additionalProperties": false
+    },
+    "authenticationSecurity": {
+      "type": "object",
+      "properties": {
+        "two_factor_secure_methods_required": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `true`. SMS codes can be intercepted; passkeys, security keys and apps cannot.",
+          "default": true
+        }
+      },
+      "required": [
+        "two_factor_secure_methods_required"
+      ],
+      "additionalProperties": false
+    },
+    "memberPrivileges": {
+      "type": "object",
+      "properties": {
+        "projects_base_permission": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"none\"`. A project shows the issues and pull requests it tracks; members see only the projects they are given.",
+          "default": "none",
+          "enum": [
+            "none",
+            "read",
+            "write",
+            "admin"
+          ]
+        },
+        "app_access_requests": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"members_only\"`. An outside collaborator cannot ask for an app that reaches the code of the organization.",
+          "default": "members_only",
+          "enum": [
+            "members_and_outside_collaborators",
+            "members_only",
+            "disabled"
+          ]
+        },
+        "members_can_install_github_apps": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. An app gets access to code and often to workflows, so only owners install them.",
+          "default": false
+        },
+        "members_can_rename_protected_branches": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Only owners rename a branch the organization ruleset protects.",
+          "default": false
+        }
+      },
+      "required": [
+        "projects_base_permission",
+        "app_access_requests",
+        "members_can_install_github_apps",
+        "members_can_rename_protected_branches"
+      ],
+      "additionalProperties": false
+    },
+    "repositoryDefaults": {
+      "type": "object",
+      "properties": {
+        "commit_comments": {
+          "type": "string",
+          "markdownDescription": "Owner decides: a collaboration feature, not a security setting.",
+          "enum": [
+            "enabled",
+            "disabled"
+          ]
+        }
+      },
+      "required": [
+        "commit_comments"
+      ],
+      "additionalProperties": false
+    },
+    "projects": {
+      "type": "object",
+      "properties": {
+        "members_can_change_project_visibility": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Making a project public publishes what it tracks; only owners should decide.",
+          "default": false
+        }
+      },
+      "required": [
+        "members_can_change_project_visibility"
+      ],
+      "additionalProperties": false
+    },
+    "actions": {
+      "type": "object",
+      "properties": {
+        "enabled_repositories": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"all\"`. Every repository may run workflows; the policies below limit what they run. none turns Actions off.",
+          "default": "all",
+          "enum": [
+            "all",
+            "none"
+          ]
+        },
+        "allowed_actions": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"selected\"`. Only GitHub actions and the listed ones run, so a new third-party action needs a deliberate change here.",
+          "default": "selected",
+          "enum": [
+            "all",
+            "local_only",
+            "selected"
+          ]
+        },
+        "sha_pinning_required": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `true`. A tag or branch can be moved by the action owner after review; a full commit SHA cannot.",
+          "default": true
+        },
+        "selected": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "github_owned_allowed": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. Actions published by GitHub are trusted like the platform itself.",
+              "default": true
+            },
+            "verified_allowed": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A verified creator is not a reviewed action; list third-party actions one by one in patterns_allowed.",
+              "default": false
+            },
+            "patterns_allowed": {
+              "type": "array",
+              "markdownDescription": "Actions allowed besides the GitHub-owned ones, such as azure/login@*. Add an action here and re-run before a workflow starts using it. Project data: the actions the workflows of the organization use.",
+              "items": {
+                "type": "string",
+                "pattern": "^\\S+$"
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "github_owned_allowed",
+            "verified_allowed",
+            "patterns_allowed"
+          ],
+          "additionalProperties": false
+        },
+        "workflow": {
+          "type": "object",
+          "properties": {
+            "default_workflow_permissions": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"read\"`. A workflow token only reads unless the workflow asks for more, which limits what a compromised step can do.",
+              "default": "read",
+              "enum": [
+                "read",
+                "write"
+              ]
+            },
+            "can_approve_pull_request_reviews": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A workflow that approves pull requests bypasses human review.",
+              "default": false
+            }
+          },
+          "required": [
+            "default_workflow_permissions",
+            "can_approve_pull_request_reviews"
+          ],
+          "additionalProperties": false
+        },
+        "selfHostedRunners": {
+          "type": "object",
+          "properties": {
+            "enabled_repositories": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"none\"`. A self-hosted runner runs repository code on your own machine and keeps state between jobs; GitHub-hosted runners are discarded after each job.",
+              "default": "none",
+              "enum": [
+                "all",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "enabled_repositories"
+          ],
+          "additionalProperties": false
+        },
+        "forkPullRequests": {
+          "type": "object",
+          "properties": {
+            "approval_policy": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"all_external_contributors\"`. A workflow from a fork runs someone else's code; a maintainer approves it first for every outside contributor.",
+              "default": "all_external_contributors",
+              "enum": [
+                "first_time_contributors_new_to_github",
+                "first_time_contributors",
+                "all_external_contributors"
+              ]
+            }
+          },
+          "required": [
+            "approval_policy"
+          ],
+          "additionalProperties": false
+        },
+        "privateForkPullRequests": {
+          "type": "object",
+          "properties": {
+            "run_workflows_from_fork_pull_requests": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. Workflows from forks of private repositories run code nobody has reviewed.",
+              "default": false
+            },
+            "send_write_tokens_to_workflows": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A workflow from a fork must not get a token that writes to the repository.",
+              "default": false
+            },
+            "send_secrets_and_variables": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A workflow from a fork must not see the repository secrets.",
+              "default": false
+            },
+            "require_approval_for_fork_pr_workflows": {
+              "type": "boolean",
+              "markdownDescription": "Only matters while run_workflows_from_fork_pull_requests is true; until then GitHub keeps it false and the plan leaves it alone. Recommended: `true`. Should workflows of fork pull requests ever run, a person approves each run before code from a fork gets the repository's token or secrets.",
+              "default": true
+            }
+          },
+          "required": [
+            "run_workflows_from_fork_pull_requests",
+            "send_write_tokens_to_workflows",
+            "send_secrets_and_variables",
+            "require_approval_for_fork_pr_workflows"
+          ],
+          "additionalProperties": false
+        },
+        "retention": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "integer",
+              "markdownDescription": "How long artifacts and logs are kept: 1 to the organization maximum (400 for private repositories). Project data: how long the organization needs workflow artifacts and logs.",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "days"
+          ],
+          "additionalProperties": false
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "retention_days": {
+              "type": "integer",
+              "markdownDescription": "Project data: GitHub's default suits most projects; a longer retention keeps more cache, billed as storage.",
+              "minimum": 1,
+              "maximum": 365
+            },
+            "size_limit_gb": {
+              "type": "integer",
+              "markdownDescription": "Project data: GitHub's default suits most projects; a larger cache is billed as storage.",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "retention_days",
+            "size_limit_gb"
+          ],
+          "additionalProperties": false
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "include_claim_keys": {
+              "type": "array",
+              "markdownDescription": "Project data: follows the OIDC subjects the cloud identities of the organization trust.",
+              "items": {
+                "type": "string",
+                "pattern": "^\\S+$"
+              },
+              "uniqueItems": true
+            },
+            "use_immutable_subject": {
+              "type": "boolean",
+              "markdownDescription": "Project data: follows the OIDC subjects the cloud identities of the organization trust."
+            }
+          },
+          "required": [
+            "include_claim_keys",
+            "use_immutable_subject"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled_repositories",
+        "allowed_actions",
+        "sha_pinning_required",
+        "selected",
+        "workflow",
+        "selfHostedRunners",
+        "forkPullRequests",
+        "privateForkPullRequests",
+        "retention",
+        "cache",
+        "oidc"
+      ],
+      "additionalProperties": false
+    },
+    "copilotCloudAgent": {
+      "type": "object",
+      "properties": {
+        "enabled_repositories": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"none\"`. The cloud agent changes code and opens pull requests from tasks: it works only where it is needed.",
+          "default": "none",
+          "enum": [
+            "all",
+            "selected",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "enabled_repositories"
+      ],
+      "additionalProperties": false
+    },
+    "copilot": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "object",
+          "properties": {
+            "public_code_suggestions": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"block\"`. Less risk of code under someone else's license.",
+              "default": "block",
+              "enum": [
+                "allow",
+                "block",
+                "unconfigured"
+              ]
+            },
+            "ide_chat": {
+              "type": "string",
+              "markdownDescription": "Copilot Chat in the editors of the members. Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "platform_chat": {
+              "type": "string",
+              "markdownDescription": "Copilot on GitHub.com and GitHub Mobile; the page names it Copilot in the cloud, which replaced Copilot Chat in GitHub. Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "cli": {
+              "type": "string",
+              "markdownDescription": "Copilot CLI in the terminal; it also governs the GitHub Copilot app before its version 1.1. Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "code_review": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "markdownDescription": "Recommended: `\"enabled\"`. The ruleset asks Copilot to review every pull request; null is a policy the organization never configured.",
+              "default": "enabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                null
+              ]
+            },
+            "ai_credit_paid_usage": {
+              "type": "string",
+              "markdownDescription": "Owner decides: paid usage beyond the included credits is a cost decision, capped by the ai_credits budget.",
+              "enum": [
+                "enabled",
+                "disabled"
+              ]
+            },
+            "bill_reviews_to_organization": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. Reviews count against ai_credits of budgets, not the quota of the member; billed to the member, a review fails with insufficient remaining quota.",
+              "default": true
+            },
+            "reviews_without_license": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. The organization does not pay for reviews of Dependabot and outside contributors.",
+              "default": false
+            },
+            "code_review_preview_features": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. Preview features of code review fall under the pre-release terms.",
+              "default": false
+            },
+            "default_policy_new_features": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. A new Copilot feature starts only after someone decides on it.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled"
+              ]
+            },
+            "feedback_collection": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. The feedback may include sensitive information.",
+              "default": false
+            },
+            "cloud_preview_features": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. Preview features fall under the pre-release terms.",
+              "default": false
+            },
+            "metrics_api": {
+              "type": "string",
+              "markdownDescription": "Owner decides: metrics of Copilot use stay within GitHub; whether to collect them is a decision of the organization.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "metrics_industry_comparison": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. Enabled, the organization contributes its aggregated metrics to comparisons with other organizations.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "usage_metrics": {
+              "type": "string",
+              "markdownDescription": "Owner decides: metrics of Copilot use stay within GitHub; whether to collect them is a decision of the organization.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "mcp_servers": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. No third-party server is connected to Copilot.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "agent_mode_ide": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "editor_preview_features": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. Preview features of the editors, MCP servers among them, fall under the pre-release terms.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "github_desktop": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "copilot_app": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "cli_billed_to_organization": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. The Copilot CLI of automations that no member runs would spend the AI credits of the organization.",
+              "default": false
+            },
+            "cloud_sessions": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. The CLI and VS Code sessions of members are stored on GitHub; with control, whoever holds a member's account steers the agent on the member's machine from github.com.",
+              "default": "disabled",
+              "enum": [
+                "disabled",
+                "view_from_cloud",
+                "view_and_control"
+              ]
+            },
+            "web_search": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. A web search sends parts of the question, and so of the code, to Bing.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "model_native_search": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. The search of a model sends parts of the question to the search of its provider.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "external_semantic_indexing": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. Members would upload code from outside GitHub for indexing.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "spaces": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "spaces_individual_access": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "spaces_individual_sharing": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. A Space of a member, with what it holds of the code, could be shared with others.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "commit_messages": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "user_memories": {
+              "type": "string",
+              "markdownDescription": "Owner decides: a Copilot feature the seats are bought for; whether members use it is a decision of the organization, not a security setting.",
+              "enum": [
+                "enabled",
+                "disabled",
+                "unconfigured"
+              ]
+            },
+            "repository_memories": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"none\"`. Copilot keeps no facts about private repositories while nobody needs them.",
+              "default": "none",
+              "enum": [
+                "none",
+                "all",
+                "selected"
+              ]
+            },
+            "memory_retention_days": {
+              "type": "integer",
+              "markdownDescription": "Owner decides: how long Copilot keeps memories, a trade-off between usefulness and the data kept.",
+              "minimum": 7,
+              "maximum": 180
+            },
+            "dreaming": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. A preview that changes memories without approval and proposes changes to files of the repositories.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled"
+              ]
+            },
+            "bring_your_own_key": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. Code does not go to a third-party model outside the control of the organization.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled"
+              ]
+            }
+          },
+          "required": [
+            "public_code_suggestions",
+            "ide_chat",
+            "platform_chat",
+            "cli",
+            "code_review",
+            "ai_credit_paid_usage",
+            "bill_reviews_to_organization",
+            "reviews_without_license",
+            "code_review_preview_features",
+            "default_policy_new_features",
+            "feedback_collection",
+            "cloud_preview_features",
+            "metrics_api",
+            "metrics_industry_comparison",
+            "usage_metrics",
+            "mcp_servers",
+            "agent_mode_ide",
+            "editor_preview_features",
+            "github_desktop",
+            "copilot_app",
+            "cli_billed_to_organization",
+            "cloud_sessions",
+            "web_search",
+            "model_native_search",
+            "external_semantic_indexing",
+            "spaces",
+            "spaces_individual_access",
+            "spaces_individual_sharing",
+            "commit_messages",
+            "user_memories",
+            "repository_memories",
+            "memory_retention_days",
+            "dreaming",
+            "bring_your_own_key"
+          ],
+          "additionalProperties": false
+        },
+        "codeReview": {
+          "type": "object",
+          "properties": {
+            "default_review_effort": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "markdownDescription": "The review effort stored for the organization; null inherits the default, which the page shows as \"Default (Balanced)\". A deeper effort costs more AI credits per review. Owner decides: a deeper review costs more AI credits per review.",
+              "pattern": "^\\S+$"
+            },
+            "maximum_review_effort": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"balanced\"`. Nobody requests Max reviews (about $10 each, in preview).",
+              "default": "balanced",
+              "pattern": "^\\S(.*\\S)?$"
+            },
+            "approve_pull_requests": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled_everywhere\"`. An approval by Copilot would satisfy the required approval of the ruleset, and a pull request would merge without a person.",
+              "default": "disabled_everywhere",
+              "pattern": "^\\S(.*\\S)?$"
+            },
+            "block_external_license_reviews": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. Only licenses of the organization request reviews; the automatic reviews of the ruleset still run.",
+              "default": true
+            }
+          },
+          "required": [
+            "default_review_effort",
+            "maximum_review_effort",
+            "approve_pull_requests",
+            "block_external_license_reviews"
+          ],
+          "additionalProperties": false
+        },
+        "runnerType": {
+          "type": "object",
+          "properties": {
+            "code_review_runner_type": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"standard\"`. Reviews run on the standard GitHub runner; a custom runner costs more and is another place the code runs.",
+              "default": "standard",
+              "enum": [
+                "standard",
+                "labeled"
+              ]
+            },
+            "code_review_allow_repository_customization": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A repository cannot move its reviews to a runner of its own.",
+              "default": false
+            },
+            "cloud_agent_runner_type": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"standard\"`. The cloud agent runs on the standard GitHub runner; a custom runner costs more and is another place the code runs.",
+              "default": "standard",
+              "enum": [
+                "standard",
+                "labeled"
+              ]
+            },
+            "cloud_agent_allow_repository_customization": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A repository cannot move the cloud agent to a runner of its own.",
+              "default": false
+            }
+          },
+          "required": [
+            "code_review_runner_type",
+            "code_review_allow_repository_customization",
+            "cloud_agent_runner_type",
+            "cloud_agent_allow_repository_customization"
+          ],
+          "additionalProperties": false
+        },
+        "models": {
+          "type": "object",
+          "properties": {
+            "default_availability": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"disabled\"`. A new model, possibly with other data retention terms (the page notes one for Claude Fable 5), becomes available only after someone decides on it.",
+              "default": "disabled",
+              "enum": [
+                "enabled",
+                "disabled"
+              ]
+            }
+          },
+          "required": [
+            "default_availability"
+          ],
+          "additionalProperties": false
+        },
+        "internetAccess": {
+          "type": "object",
+          "properties": {
+            "cloud_firewall": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. An agent that reads the code reaches only the allowlisted locations.",
+              "default": true
+            },
+            "cloud_recommended_allowlist": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. The agent installs packages and tools only from the locations GitHub recommends.",
+              "default": true
+            },
+            "cloud_repository_custom_rules": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A repository admin cannot open more network access than the organization allows.",
+              "default": false
+            },
+            "code_review_firewall": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. A reviewer that reads the code reaches only the allowlisted locations.",
+              "default": true
+            },
+            "code_review_recommended_allowlist": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. The reviewer installs packages and tools only from the locations GitHub recommends.",
+              "default": true
+            },
+            "code_review_repository_custom_rules": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. A repository admin cannot open more network access than the organization allows.",
+              "default": false
+            }
+          },
+          "required": [
+            "cloud_firewall",
+            "cloud_recommended_allowlist",
+            "cloud_repository_custom_rules",
+            "code_review_firewall",
+            "code_review_recommended_allowlist",
+            "code_review_repository_custom_rules"
+          ],
+          "additionalProperties": false
+        },
+        "automations": {
+          "type": "object",
+          "properties": {
+            "allow_automations": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"none\"`. The cloud agent is not used, and a repository cannot turn automations on by itself.",
+              "default": "none",
+              "enum": [
+                "none",
+                "all",
+                "selected"
+              ]
+            },
+            "allow_shared_automations": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. Shared automations run as the organization and are billed to it.",
+              "default": false
+            },
+            "require_write_access": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. Someone without write access cannot start an automation.",
+              "default": true
+            },
+            "update_triggering_resource_only": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. An automation changes only what started it.",
+              "default": true
+            },
+            "require_workflow_approval": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. The workflows of its pull requests wait for a person.",
+              "default": true
+            }
+          },
+          "required": [
+            "allow_automations",
+            "allow_shared_automations",
+            "require_write_access",
+            "update_triggering_resource_only",
+            "require_workflow_approval"
+          ],
+          "additionalProperties": false
+        },
+        "partnerAgents": {
+          "type": "object",
+          "properties": {
+            "claude": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. No other agent works in the repositories of the organization.",
+              "default": false
+            },
+            "codex": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `false`. No other agent works in the repositories of the organization.",
+              "default": false
+            }
+          },
+          "required": [
+            "claude",
+            "codex"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "policies",
+        "codeReview",
+        "runnerType",
+        "models",
+        "internetAccess",
+        "automations",
+        "partnerAgents"
+      ],
+      "additionalProperties": false
+    },
+    "codeSecurity": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "markdownDescription": "Name of the code security configuration the engine manages. Project data: the name of the configuration.",
+          "pattern": "^\\S(.*\\S)?$"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "markdownDescription": "Description of the configuration, or null. Project data: the description of the configuration."
+        },
+        "default_for_new_repos": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"all\"`. Every new repository gets the configuration without anyone remembering to attach it.",
+          "default": "all",
+          "enum": [
+            "all",
+            "none",
+            "private_and_internal",
+            "public"
+          ]
+        },
+        "enforcement": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"enforced\"`. Repository admins cannot turn the features off.",
+          "default": "enforced",
+          "enum": [
+            "enforced",
+            "unenforced"
+          ]
+        },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "dependency_graph": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"enabled\"`. Dependabot needs the dependency graph to know what a repository uses.",
+              "default": "enabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "not_set"
+              ]
+            },
+            "dependabot_alerts": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"enabled\"`. Known vulnerabilities in dependencies are reported.",
+              "default": "enabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "not_set"
+              ]
+            },
+            "dependabot_security_updates": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"enabled\"`. Dependabot opens pull requests that fix vulnerable dependencies.",
+              "default": "enabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "not_set"
+              ]
+            },
+            "private_vulnerability_reporting": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"enabled\"`. A researcher can report a vulnerability of a public repository privately instead of in a public issue.",
+              "default": "enabled",
+              "enum": [
+                "enabled",
+                "disabled",
+                "not_set"
+              ]
+            }
+          },
+          "required": [
+            "dependency_graph",
+            "dependabot_alerts",
+            "dependabot_security_updates",
+            "private_vulnerability_reporting"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "default_for_new_repos",
+        "enforcement",
+        "settings"
+      ],
+      "additionalProperties": false
+    },
+    "ruleset": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "markdownDescription": "Name of the organization ruleset the engine manages; it protects the default branch of every repository. Project data: the name of the ruleset.",
+          "pattern": "^\\S(.*\\S)?$"
+        },
+        "enforcement": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"active\"`. A disabled ruleset protects no branch.",
+          "default": "active",
+          "enum": [
+            "active",
+            "disabled"
+          ]
+        },
+        "bypass": {
+          "type": "object",
+          "properties": {
+            "organizationAdmin": {
+              "type": "string",
+              "markdownDescription": "Recommended: `\"pull_request\"`. An organization owner can merge a pull request without the approvals, which GitHub records, but never push to a default branch directly; none leaves no way past the rules.",
+              "default": "pull_request",
+              "enum": [
+                "pull_request",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "organizationAdmin"
+          ],
+          "additionalProperties": false
+        },
+        "rules": {
+          "type": "object",
+          "properties": {
+            "deletion": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. Nobody can delete the default branch of a repository.",
+              "default": true
+            },
+            "non_fast_forward": {
+              "type": "boolean",
+              "markdownDescription": "Recommended: `true`. Nobody can force-push to a default branch and rewrite its reviewed history.",
+              "default": true
+            },
+            "workflows": {
+              "type": "array",
+              "markdownDescription": "Central workflows every pull request of every repository must pass, each pinned to a commit of a repository of the organization, so write access to that repository alone cannot change a check. Project data: the central workflows of the organization.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "repository": {
+                    "type": "string",
+                    "markdownDescription": "Name of the repository of the organization that holds the workflow, such as .github.",
+                    "pattern": "^[A-Za-z0-9._-]+$"
+                  },
+                  "path": {
+                    "type": "string",
+                    "markdownDescription": "Path of the workflow file in that repository.",
+                    "pattern": "^\\.github/workflows/[^/]+\\.ya?ml$"
+                  },
+                  "sha": {
+                    "type": "string",
+                    "markdownDescription": "Full commit SHA of the workflow file to run.",
+                    "pattern": "^[0-9a-f]{40}$"
+                  }
+                },
+                "required": [
+                  "repository",
+                  "path",
+                  "sha"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "pullRequest": {
+              "type": "object",
+              "properties": {
+                "required_approving_review_count": {
+                  "type": "integer",
+                  "markdownDescription": "Recommended: `1`. Every change to a default branch is approved by someone other than its author.",
+                  "default": 1,
+                  "minimum": 0,
+                  "maximum": 10
+                },
+                "dismiss_stale_reviews_on_push": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. A commit pushed after an approval needs a new approval, so no unreviewed code joins an approved pull request.",
+                  "default": true
+                },
+                "require_last_push_approval": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. Someone other than the person who pushed last approves, so nobody approves their own last change.",
+                  "default": true
+                },
+                "require_code_owner_review": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. A change to files with code owners needs the approval of one of them; it has no effect in a repository without a CODEOWNERS file.",
+                  "default": true
+                },
+                "required_review_thread_resolution": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. Every review comment is resolved before the merge, so none is lost.",
+                  "default": true
+                },
+                "require_extra_approval_for_unattributed_changes": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. A change GitHub cannot attribute to a person, such as one made by Copilot, needs one more approval.",
+                  "default": true
+                },
+                "allowed_merge_methods": {
+                  "type": "array",
+                  "markdownDescription": "Recommended: `[\"merge\"]`. Reviewed and tested commits reach the default branch with the same SHAs; the ruleset does not turn off the other methods in the repository settings.",
+                  "default": [
+                    "merge"
+                  ],
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "merge",
+                      "squash",
+                      "rebase"
+                    ]
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "requiredReviewers": {
+                  "type": "array",
+                  "markdownDescription": "Teams that must approve changes to some files in every repository. A team counts only where it has write access. One entry with minimum_approvals of at least 1 must cover .github/workflows/**, unless an exception names this field. Project data: the teams of the organization; the entry that covers the workflows is a rule of its own.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "team": {
+                        "type": "string",
+                        "markdownDescription": "Slug of the team of the organization.",
+                        "pattern": "^[A-Za-z0-9_.-]+$"
+                      },
+                      "minimum_approvals": {
+                        "type": "integer",
+                        "markdownDescription": "How many members of the team must approve, 0 to 10.",
+                        "minimum": 0,
+                        "maximum": 10
+                      },
+                      "file_patterns": {
+                        "type": "array",
+                        "markdownDescription": "File patterns, as in CODEOWNERS, whose changes the team must approve.",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^\\S(.*\\S)?$"
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
+                      }
+                    },
+                    "required": [
+                      "team",
+                      "minimum_approvals",
+                      "file_patterns"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "required_approving_review_count",
+                "dismiss_stale_reviews_on_push",
+                "require_last_push_approval",
+                "require_code_owner_review",
+                "required_review_thread_resolution",
+                "require_extra_approval_for_unattributed_changes",
+                "allowed_merge_methods",
+                "requiredReviewers"
+              ],
+              "additionalProperties": false
+            },
+            "copilotCodeReview": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. Copilot reviews every pull request, and its comments are resolved before the merge; false leaves the rule out of the ruleset. It needs Copilot Business.",
+                  "default": true
+                },
+                "review_on_push": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `true`. Copilot reviews every new push too, so the changes made after its review are reviewed as well; each review costs AI credits.",
+                  "default": true
+                },
+                "review_draft_pull_requests": {
+                  "type": "boolean",
+                  "markdownDescription": "Recommended: `false`. Copilot reviews a pull request once it is ready for review, so a draft that still changes costs no AI credits.",
+                  "default": false
+                }
+              },
+              "required": [
+                "enabled",
+                "review_on_push",
+                "review_draft_pull_requests"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "deletion",
+            "non_fast_forward",
+            "workflows",
+            "pullRequest",
+            "copilotCodeReview"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "name",
+        "enforcement",
+        "bypass",
+        "rules"
+      ],
+      "additionalProperties": false
+    },
+    "budgets": {
+      "type": "array",
+      "markdownDescription": "One entry per budget of the organization; a paid product without a budget has no limit. [] for none.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "budget_type": {
+            "type": "string",
+            "markdownDescription": "BundlePricing for ai_credits, ProductPricing for a product, SkuPricing for a single SKU.",
+            "enum": [
+              "BundlePricing",
+              "ProductPricing",
+              "SkuPricing"
+            ]
+          },
+          "budget_product_sku": {
+            "type": "string",
+            "markdownDescription": "The product or SKU id, such as actions or ghas_secret_protection_licenses.",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "budget_amount": {
+            "type": "integer",
+            "markdownDescription": "Whole dollars a month; the number of licenses for a license-based SKU.",
+            "minimum": 0
+          },
+          "prevent_further_usage": {
+            "type": "boolean",
+            "markdownDescription": "Whether usage stops at the limit."
+          }
+        },
+        "required": [
+          "budget_type",
+          "budget_product_sku",
+          "budget_amount",
+          "prevent_further_usage"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "copilotSeats": {
+      "type": "object",
+      "markdownDescription": "Who holds a Copilot seat; every seat is paid. A login or team without a seat is planned, a seat outside this list is only a warning.",
+      "properties": {
+        "selected_usernames": {
+          "type": "array",
+          "markdownDescription": "Logins that hold a seat of their own; [] for none.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "uniqueItems": true
+        },
+        "selected_teams": {
+          "type": "array",
+          "markdownDescription": "Slugs of the teams whose members hold a seat; [] for none.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "selected_usernames",
+        "selected_teams"
+      ],
+      "additionalProperties": false
+    },
+    "personalAccessTokens": {
+      "type": "object",
+      "properties": {
+        "fine_grained": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"restrict\"`. A forgotten token keeps write access to main, and so to the deployment, until it expires; allow it only while someone needs one.",
+          "default": "restrict",
+          "enum": [
+            "allow",
+            "restrict"
+          ]
+        },
+        "classic": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"restrict\"`. A classic token with repo reaches every repository and cannot be limited; gh auth login uses an OAuth token, not a classic one.",
+          "default": "restrict",
+          "enum": [
+            "allow",
+            "restrict"
+          ]
+        }
+      },
+      "required": [
+        "fine_grained",
+        "classic"
+      ],
+      "additionalProperties": false
+    },
+    "oauthApps": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"restricted\"`. Without it, every OAuth app a member authorized reads the private repositories.",
+          "default": "restricted",
+          "enum": [
+            "restricted",
+            "unrestricted"
+          ]
+        }
+      },
+      "required": [
+        "policy"
+      ],
+      "additionalProperties": false
+    },
+    "codespaces": {
+      "type": "object",
+      "properties": {
+        "access": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"disabled\"`. One less place where the code and its secrets run. The API writes it but cannot read it back, so only a person can check it.",
+          "default": "disabled",
+          "enum": [
+            "disabled",
+            "selected_members",
+            "all_members",
+            "all_members_and_outside_collaborators"
+          ]
+        },
+        "ownership": {
+          "type": "string",
+          "markdownDescription": "Owner decides: it matters only while Codespaces are enabled (codespaces.access), and then decides who pays.",
+          "enum": [
+            "organization",
+            "user"
+          ]
+        }
+      },
+      "required": [
+        "access",
+        "ownership"
+      ],
+      "additionalProperties": false
+    },
+    "packages": {
+      "type": "object",
+      "properties": {
+        "public_creation": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. No public package or container is published by mistake.",
+          "default": false
+        },
+        "inherit_access": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `true`. A new package is visible to whoever sees its repository, nobody else.",
+          "default": true
+        }
+      },
+      "required": [
+        "public_creation",
+        "inherit_access"
+      ],
+      "additionalProperties": false
+    },
+    "discussions": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "markdownDescription": "Owner decides: a collaboration feature, not a security setting."
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "additionalProperties": false
+    },
+    "interactionLimits": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "string",
+          "markdownDescription": "A temporary limit on who can interact with the public repositories; none while no limit is set (GitHub answers {}). A limit expires on its own. Owner decides: a temporary measure during an incident on a public repository, which expires on its own.",
+          "enum": [
+            "none",
+            "existing_users",
+            "contributors_only",
+            "collaborators_only"
+          ]
+        },
+        "pull_request_cap_enabled": {
+          "type": "boolean",
+          "markdownDescription": "A cap on the open pull requests of a user without write access in each public repository. Owner decides: a spam measure for public repositories, which matters once they receive outside pull requests."
+        }
+      },
+      "required": [
+        "limit",
+        "pull_request_cap_enabled"
+      ],
+      "additionalProperties": false
+    },
+    "immutableReleases": {
+      "type": "object",
+      "properties": {
+        "enforced_repositories": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"all\"`. Once published, a release cannot have its assets changed or its tag moved, so what a workflow downloaded by tag stays what was reviewed.",
+          "default": "all",
+          "enum": [
+            "all",
+            "none",
+            "selected"
+          ]
+        }
+      },
+      "required": [
+        "enforced_repositories"
+      ],
+      "additionalProperties": false
+    },
+    "dependabot": {
+      "type": "object",
+      "properties": {
+        "default_level": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"public\"`. What Dependabot reads in a repository becomes visible to every member through its updates, so it reads only public repositories unless one is added on purpose.",
+          "default": "public",
+          "enum": [
+            "public",
+            "internal"
+          ]
+        }
+      },
+      "required": [
+        "default_level"
+      ],
+      "additionalProperties": false
+    },
+    "advancedSecurity": {
+      "type": "object",
+      "properties": {
+        "agentic_autofix": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Copilot opens fix pull requests for alerts and consumes AI credits for each.",
+          "default": false
+        },
+        "ai_scan_repositories": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A preview that scans default branches with AI at a cost; turn it on deliberately.",
+          "default": false
+        },
+        "ai_scan_pull_requests": {
+          "type": "string",
+          "markdownDescription": "Recommended: `\"disabled\"`. Each scan of a pull request costs AI credits; turn it on deliberately.",
+          "default": "disabled",
+          "enum": [
+            "enabled",
+            "disabled"
+          ]
+        },
+        "scan_ai_applications": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. A preview that scans pull requests with AI at a cost; turn it on deliberately.",
+          "default": false
+        },
+        "code_quality": {
+          "type": "boolean",
+          "markdownDescription": "Recommended: `false`. Code quality scanning charges Actions minutes, which the budgets stop at 0.",
+          "default": false
+        }
+      },
+      "required": [
+        "agentic_autofix",
+        "ai_scan_repositories",
+        "ai_scan_pull_requests",
+        "scan_ai_applications",
+        "code_quality"
+      ],
+      "additionalProperties": false
+    },
+    "exceptions": {
+      "type": "array",
+      "markdownDescription": "Deliberate deviations from a recommended value or a rule, each with a reason and an expiry date at most one year ahead; [] for none.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "markdownDescription": "Path of the field the exception covers.",
+            "pattern": "^\\S+$",
+            "enum": [
+              "settings.default_repository_permission",
+              "settings.members_can_create_repositories",
+              "settings.members_can_create_public_repositories",
+              "settings.members_can_create_private_repositories",
+              "settings.members_can_create_pages",
+              "settings.members_can_fork_private_repositories",
+              "settings.deploy_keys_enabled_for_repositories",
+              "settings.is_verified",
+              "settings.two_factor_requirement_enabled",
+              "settings.members_can_delete_repositories",
+              "settings.members_can_change_repo_visibility",
+              "settings.members_can_invite_outside_collaborators",
+              "settings.members_can_create_teams",
+              "settings.members_can_delete_issues",
+              "settings.readers_can_create_discussions",
+              "settings.members_can_create_public_pages",
+              "settings.members_can_create_private_pages",
+              "authenticationSecurity.two_factor_secure_methods_required",
+              "memberPrivileges.projects_base_permission",
+              "memberPrivileges.app_access_requests",
+              "memberPrivileges.members_can_install_github_apps",
+              "memberPrivileges.members_can_rename_protected_branches",
+              "projects.members_can_change_project_visibility",
+              "actions.enabled_repositories",
+              "actions.allowed_actions",
+              "actions.sha_pinning_required",
+              "actions.selected.github_owned_allowed",
+              "actions.selected.verified_allowed",
+              "actions.workflow.default_workflow_permissions",
+              "actions.workflow.can_approve_pull_request_reviews",
+              "actions.selfHostedRunners.enabled_repositories",
+              "actions.forkPullRequests.approval_policy",
+              "actions.privateForkPullRequests.run_workflows_from_fork_pull_requests",
+              "actions.privateForkPullRequests.send_write_tokens_to_workflows",
+              "actions.privateForkPullRequests.send_secrets_and_variables",
+              "actions.privateForkPullRequests.require_approval_for_fork_pr_workflows",
+              "copilotCloudAgent.enabled_repositories",
+              "copilot.policies.public_code_suggestions",
+              "copilot.policies.code_review",
+              "copilot.policies.bill_reviews_to_organization",
+              "copilot.policies.reviews_without_license",
+              "copilot.policies.code_review_preview_features",
+              "copilot.policies.default_policy_new_features",
+              "copilot.policies.feedback_collection",
+              "copilot.policies.cloud_preview_features",
+              "copilot.policies.metrics_industry_comparison",
+              "copilot.policies.mcp_servers",
+              "copilot.policies.editor_preview_features",
+              "copilot.policies.cli_billed_to_organization",
+              "copilot.policies.cloud_sessions",
+              "copilot.policies.web_search",
+              "copilot.policies.model_native_search",
+              "copilot.policies.external_semantic_indexing",
+              "copilot.policies.spaces_individual_sharing",
+              "copilot.policies.repository_memories",
+              "copilot.policies.dreaming",
+              "copilot.policies.bring_your_own_key",
+              "copilot.codeReview.maximum_review_effort",
+              "copilot.codeReview.approve_pull_requests",
+              "copilot.codeReview.block_external_license_reviews",
+              "copilot.runnerType.code_review_runner_type",
+              "copilot.runnerType.code_review_allow_repository_customization",
+              "copilot.runnerType.cloud_agent_runner_type",
+              "copilot.runnerType.cloud_agent_allow_repository_customization",
+              "copilot.models.default_availability",
+              "copilot.internetAccess.cloud_firewall",
+              "copilot.internetAccess.cloud_recommended_allowlist",
+              "copilot.internetAccess.cloud_repository_custom_rules",
+              "copilot.internetAccess.code_review_firewall",
+              "copilot.internetAccess.code_review_recommended_allowlist",
+              "copilot.internetAccess.code_review_repository_custom_rules",
+              "copilot.automations.allow_automations",
+              "copilot.automations.allow_shared_automations",
+              "copilot.automations.require_write_access",
+              "copilot.automations.update_triggering_resource_only",
+              "copilot.automations.require_workflow_approval",
+              "copilot.partnerAgents.claude",
+              "copilot.partnerAgents.codex",
+              "codeSecurity.default_for_new_repos",
+              "codeSecurity.enforcement",
+              "codeSecurity.settings.dependency_graph",
+              "codeSecurity.settings.dependabot_alerts",
+              "codeSecurity.settings.dependabot_security_updates",
+              "codeSecurity.settings.private_vulnerability_reporting",
+              "ruleset.enforcement",
+              "ruleset.bypass.organizationAdmin",
+              "ruleset.rules.deletion",
+              "ruleset.rules.non_fast_forward",
+              "ruleset.rules.pullRequest.required_approving_review_count",
+              "ruleset.rules.pullRequest.dismiss_stale_reviews_on_push",
+              "ruleset.rules.pullRequest.require_last_push_approval",
+              "ruleset.rules.pullRequest.require_code_owner_review",
+              "ruleset.rules.pullRequest.required_review_thread_resolution",
+              "ruleset.rules.pullRequest.require_extra_approval_for_unattributed_changes",
+              "ruleset.rules.pullRequest.allowed_merge_methods",
+              "ruleset.rules.copilotCodeReview.enabled",
+              "ruleset.rules.copilotCodeReview.review_on_push",
+              "ruleset.rules.copilotCodeReview.review_draft_pull_requests",
+              "personalAccessTokens.fine_grained",
+              "personalAccessTokens.classic",
+              "oauthApps.policy",
+              "codespaces.access",
+              "packages.public_creation",
+              "packages.inherit_access",
+              "immutableReleases.enforced_repositories",
+              "dependabot.default_level",
+              "advancedSecurity.agentic_autofix",
+              "advancedSecurity.ai_scan_repositories",
+              "advancedSecurity.ai_scan_pull_requests",
+              "advancedSecurity.scan_ai_applications",
+              "advancedSecurity.code_quality",
+              "ruleset.rules.pullRequest.requiredReviewers"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "markdownDescription": "waiver: the risk is accepted. mitigated: another control covers it.",
+            "enum": [
+              "waiver",
+              "mitigated"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "markdownDescription": "Why the recommended value or the rule is not followed.",
+            "pattern": "\\S"
+          },
+          "expiresOn": {
+            "type": "string",
+            "markdownDescription": "Last day the exception applies, at most one year ahead; then the warning or error returns.",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "markdownDescription": "An issue or decision behind the exception, or null.",
+            "pattern": "^https://\\S+$"
+          }
+        },
+        "required": [
+          "field",
+          "category",
+          "reason",
+          "expiresOn",
+          "reference"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "configVersion",
+    "organization",
+    "inventory",
+    "settings",
+    "authenticationSecurity",
+    "memberPrivileges",
+    "repositoryDefaults",
+    "projects",
+    "actions",
+    "copilotCloudAgent",
+    "copilot",
+    "codeSecurity",
+    "ruleset",
+    "budgets",
+    "copilotSeats",
+    "personalAccessTokens",
+    "oauthApps",
+    "codespaces",
+    "packages",
+    "discussions",
+    "interactionLimits",
+    "immutableReleases",
+    "dependabot",
+    "advancedSecurity",
+    "exceptions"
+  ],
+  "additionalProperties": false
+}

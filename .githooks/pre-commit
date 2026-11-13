@@ -1,0 +1,12 @@
+#!/bin/sh
+# Scans the staged changes for secrets before every commit; CI scans the full history after the push.
+# Enabled per clone by tools/Install-DevTools.ps1 (git config --local core.hooksPath .githooks).
+# A false positive: add a betterleaks:allow comment on the line, or its fingerprint to .betterleaksignore.
+
+if ! command -v betterleaks >/dev/null 2>&1; then
+  echo "pre-commit: betterleaks not found; run ./tools/Install-DevTools.ps1 (CONTRIBUTING.md > Setup); to skip the scan for one commit:" >&2
+  echo "  git commit --no-verify" >&2
+  exit 1
+fi
+
+exec betterleaks git --pre-commit --staged --redact --verbose --no-banner .
