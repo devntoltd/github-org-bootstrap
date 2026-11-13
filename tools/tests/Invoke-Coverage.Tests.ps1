@@ -22,6 +22,8 @@ Describe 'Invoke-Coverage.ps1' {
         }
         Mock Out-Host { }
         Mock Write-Host { }
+        # In CI GITHUB_STEP_SUMMARY is set: the stand-in result must not reach the job summary of the real run.
+        Mock Add-Content { }
     }
 
     # Module code is every .psm1 and every .ps1 in a src directory, outside the tests and outside a pinned engine
