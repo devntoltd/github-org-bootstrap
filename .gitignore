@@ -2,3 +2,5 @@
 coverage.xml
 # A pinned engine checked out by engine/examples/run.ps1 in a config repository.
 .engine/
+# Personal Claude Code settings; the shared ones are in .claude/settings.json.
+.claude/settings.local.json

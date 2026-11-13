@@ -22,6 +22,8 @@ Markdown lint needs Node.js, which the script does not install.
 
 VS Code offers the recommended extensions (`.vscode/extensions.json`) when the folder is opened: PowerShell, Pester Tests (run or debug a single `Describe`/`It` from the editor), Coverage Gutters (see [Code coverage](#code-coverage)) and others.
 
+Claude Code offers the plugins of `.claude/settings.json` when the folder is trusted: the [superpowers](https://github.com/obra/superpowers) skills (brainstorming, plans, test-driven development, verification before completion). Personal settings go into `.claude/settings.local.json`, which git ignores.
+
 ## Checks
 
 Run from the repository root; CI (`.github/workflows/ci.yml`, Ubuntu) runs the same checks on every pull request and on pushes to `main`; a new push to a pull request cancels the run still going for the previous one, and a run stops after 15 minutes.
