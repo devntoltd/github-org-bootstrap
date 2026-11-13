@@ -2,8 +2,8 @@
 .SYNOPSIS
 Runs every test with code coverage, prints the coverage per file and writes coverage.xml (JaCoCo).
 .DESCRIPTION
-Measures the module code of shared/ and of every stage (<stage>/*.psm1 and <stage>/src/*.ps1); test files and the
-bootstrap.ps1 entry points are not measured. Fails (exit code 1) when a test fails or the coverage is below -Target.
+Measures the module code of every top-level directory with a module, shared/ and engine/ (<directory>/*.psm1 and
+<directory>/src/*.ps1); test files and the bootstrap.ps1 entry point are not measured. Fails (exit code 1) when a test fails or the coverage is below -Target.
 In GitHub Actions the per-file table also goes to the job summary.
 .EXAMPLE
 ./tools/Invoke-Coverage.ps1
@@ -28,9 +28,11 @@ $root = Split-Path -Path $PSScriptRoot -Parent
 . (Join-Path -Path $PSScriptRoot -ChildPath 'DevModule.ps1')
 Import-DevModule -Name 'Pester'
 
-# Module code only; a new stage directory (NN-name) is picked up without changing this list.
-$codeDirectories = @(Join-Path -Path $root -ChildPath 'shared') +
-@(Get-ChildItem -Path $root -Directory | Where-Object { $_.Name -match '^\d{2}-' } | ForEach-Object { $_.FullName })
+# Module code only: every top-level directory with a module (shared/, engine/), so a new one is picked up without
+# changing this list.
+$codeDirectories = @(Get-ChildItem -Path $root -Directory |
+        Where-Object { Get-ChildItem -Path $_.FullName -Filter '*.psm1' -File } |
+        ForEach-Object { $_.FullName })
 $codePaths = foreach ($directory in $codeDirectories) {
     Join-Path -Path $directory -ChildPath '*.psm1'
     $src = Join-Path -Path $directory -ChildPath 'src'
