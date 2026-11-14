@@ -11,7 +11,7 @@ release unchanged.
 ### Changed
 
 - `engine/examples/run.ps1` stops when `.engine/` has local changes (an edited or added file), instead of running
-  them; remove `.engine/` to check out the pinned engine again.
+  them, or deleting them when the pin changed; remove `.engine/` to check out the pinned engine again.
 
 ## [1.0.0] - 2026-11-13
 

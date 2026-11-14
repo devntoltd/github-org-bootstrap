@@ -78,6 +78,14 @@ if (Test-Path -LiteralPath (Join-Path -Path $engine -ChildPath '.git')) {
         $head = $null
     }
 }
+# Run only the pinned engine as published, and never delete a file someone changed: an edited or added file in a
+# checkout stops the run before it is reused or replaced. Untracked files are asked for whatever the git config says.
+if ($head) {
+    $changes = @(Invoke-Git -Arguments @('-C', $engine, 'status', '--porcelain', '--untracked-files=all') | Where-Object { $_ })
+    if ($changes) {
+        throw "$engine has local changes, so it is not the pinned engine:`n$($changes -join "`n")`nRemove $engine to check out the pinned engine again."
+    }
+}
 if ($head -cne $commit) {
     if (Test-Path -LiteralPath $engine) {
         Remove-Item -LiteralPath $engine -Recurse -Force -WhatIf:$false
@@ -89,12 +97,6 @@ if ($head -cne $commit) {
     if ($head -cne $commit) {
         throw "The engine checked out at $head, not at the pinned commit $commit."
     }
-}
-
-# Run only the pinned engine as published: an edited or added file in .engine/ stops the run, kept for the user to see.
-$changes = @(Invoke-Git -Arguments @('-C', $engine, 'status', '--porcelain') | Where-Object { $_ })
-if ($changes) {
-    throw "$engine has local changes, so it is not the pinned engine:`n$($changes -join "`n")`nRemove $engine to check out the pinned engine again."
 }
 
 $bootstrap = Join-Path -Path $engine -ChildPath 'engine/bootstrap.ps1'

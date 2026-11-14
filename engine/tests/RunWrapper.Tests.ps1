@@ -39,7 +39,8 @@ Describe 'engine/examples/run.ps1' {
             Set-Content -LiteralPath (Join-Path -Path $engine -ChildPath 'bootstrap.ps1') -Value $state.Stub
         }.GetNewClosure() -ParameterFilter { $args -contains 'checkout' }
         Mock git { $global:LASTEXITCODE = 0; $state.Head }.GetNewClosure() -ParameterFilter { $args -contains 'rev-parse' }
-        Mock git { $global:LASTEXITCODE = 0; $state.Status }.GetNewClosure() -ParameterFilter { $args -contains 'status' }
+        # Untracked files show only when asked for, as with status.showUntrackedFiles=no in the user's git config.
+        Mock git { $global:LASTEXITCODE = 0; if ($args -contains '--untracked-files=all') { $state.Status } }.GetNewClosure() -ParameterFilter { $args -contains 'status' }
 
         function Initialize-TestEngine {
             # A checkout already in place at $Head: .engine/.git and the stub engine.
@@ -89,6 +90,15 @@ Describe 'engine/examples/run.ps1' {
         { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*engine/src/Plan.ps1*extra.ps1*'
         Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
         Get-TestCall | Should -BeNullOrEmpty
+        Join-Path -Path $script:state.Directory -ChildPath '.engine/engine/bootstrap.ps1' | Should -Exist
+    }
+
+    It 'stops when .engine at another commit has local changes, before replacing it' {
+        Initialize-TestEngine -Head $script:other
+        $script:state.Status = @('?? extra.ps1')
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*extra.ps1*'
+        Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
         Join-Path -Path $script:state.Directory -ChildPath '.engine/engine/bootstrap.ps1' | Should -Exist
     }
 
