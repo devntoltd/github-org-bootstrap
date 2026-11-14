@@ -1,10 +1,10 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.Common.psm1') -Force
 }
 
 Describe 'Import-BootstrapConfig' {
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
     }
 
     It 'shows which config file it read, relative to the current directory' {
@@ -18,7 +18,7 @@ Describe 'Import-BootstrapConfig' {
             Pop-Location
         }
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter {
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter {
             $Object -in @('Config:  ./shown.json', 'Config:  .\shown.json')
         }
     }

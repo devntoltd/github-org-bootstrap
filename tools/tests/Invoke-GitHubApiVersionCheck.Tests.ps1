@@ -80,7 +80,7 @@ Describe 'Invoke-GitHubApiVersionCheck.ps1' {
         @(Get-GhOption -Call $created[0] -Name '--assignee') | Should -Be @('operator')
         $body = Get-GhOption -Call $created[0] -Name '--body'
         $body | Should -BeLike '<!-- github-api-version: 2027-06-01 -->*'
-        $body | Should -Match ([regex]::Escape('version `2027-06-01`; the engines pin `2026-03-10`'))
+        $body | Should -Match ([regex]::Escape('version `2027-06-01`; the engine pins `2026-03-10`'))
         $body | Should -BeLike '*- `[ `] Review it.'
         (Get-Content -Path $script:summary -Raw) | Should -Match '\| 2026-03-10 \| 2027-06-01 \| opened #7 \|'
     }

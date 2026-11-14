@@ -1,5 +1,5 @@
 # Loading a config file. Dot-sourced into
-# Bootstrap.Common, so its functions share that module's scope (Pester -ModuleName Bootstrap.Common mocks).
+# GitHubOrg.Common, so its functions share that module's scope (Pester -ModuleName GitHubOrg.Common mocks).
 
 function Import-BootstrapConfig {
     <#

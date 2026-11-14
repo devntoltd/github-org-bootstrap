@@ -40,7 +40,7 @@ Describe 'Find-DependencyUpdate.ps1' {
         )
         # The module that pins the GitHub REST API version.
         $shared = (New-Item -ItemType Directory -Path (Join-Path -Path $folder -ChildPath 'shared')).FullName
-        Set-Content -Path (Join-Path -Path $shared -ChildPath 'Bootstrap.Common.psm1') -Value "`$script:GitHubApiVersion = '2026-03-10'"
+        Set-Content -Path (Join-Path -Path $shared -ChildPath 'GitHubOrg.Common.psm1') -Value "`$script:GitHubApiVersion = '2026-03-10'"
         $script:TestReleases = @(Get-TestRelease -Tag 'lychee-v0.24.2' -Published '2026-08-01T00:00:00Z')
         $script:TestGhCalls = [System.Collections.Generic.List[string[]]]::new()
         # The mock runs inside the script under test: the fixtures are found by name (dynamic scoping). It answers the

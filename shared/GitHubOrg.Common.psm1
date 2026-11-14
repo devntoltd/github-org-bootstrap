@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-# The GitHub REST API version every call of Invoke-GhApi asks for: the engines are verified against its response shapes
+# The GitHub REST API version every call of Invoke-GhApi asks for: the engine is verified against its response shapes
 # (raise it only after verifying them again, see CONTRIBUTING.md). Without the header GitHub picks its own default.
 # Kept in this file: the weekly scripts in tools/ read this line by path (Get-PinnedGitHubApiVersion).
 $script:GitHubApiVersion = '2026-03-10'

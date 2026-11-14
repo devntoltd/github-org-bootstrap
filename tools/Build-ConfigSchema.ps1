@@ -9,7 +9,7 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Path $PSScriptRoot -Parent
-Import-Module (Join-Path -Path $root -ChildPath 'shared/Bootstrap.Common.psm1') -Force
+Import-Module (Join-Path -Path $root -ChildPath 'shared/GitHubOrg.Common.psm1') -Force
 Import-Module (Join-Path -Path $root -ChildPath 'engine/GitHubOrg.psm1') -Force
 
 $text = ConvertTo-ConfigSchema -Shape (Get-GitHubOrgConfigShape) -Title 'github-org-bootstrap config'

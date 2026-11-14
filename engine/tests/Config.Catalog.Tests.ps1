@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 }
@@ -364,7 +364,7 @@ Describe 'Setting catalog: rows' {
 Describe 'API catalog' {
     BeforeAll {
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
 
         $script:catalog = InModuleScope GitHubOrg { $script:ApiCatalog }
 
@@ -536,7 +536,7 @@ Describe 'API catalog' {
     }
 
     It 'is reviewed against the pinned API version' {
-        $pinned = & (Get-Module Bootstrap.Common) { $script:GitHubApiVersion }
+        $pinned = & (Get-Module GitHubOrg.Common) { $script:GitHubApiVersion }
 
         $script:catalog.ApiVersion | Should -Be $pinned
         $script:catalog.ReviewedOn | Should -Match '^\d{4}-\d{2}-\d{2}$'
@@ -743,7 +743,7 @@ Describe 'Get-GitHubOrgReadField' {
 Describe 'ConvertTo-FieldMap' {
     BeforeEach {
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
     }
 
     AfterEach {

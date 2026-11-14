@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.Common.psm1') -Force
 }
 
 Describe 'Assert-GhVersion' {
@@ -8,9 +8,9 @@ Describe 'Assert-GhVersion' {
     }
 
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
         # The stub is a function, which Get-Command -CommandType Application does not find.
-        Mock -ModuleName Bootstrap.Common Test-GhInstalled { $true }
+        Mock -ModuleName GitHubOrg.Common Test-GhInstalled { $true }
     }
 
     AfterEach {
@@ -28,8 +28,8 @@ Describe 'Assert-GhVersion' {
 
         { Assert-GhVersion } | Should -Not -Throw
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Tools:' }
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter {
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Tools:' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter {
             $Object -eq ('  {0,-26} installed {1,-8} minimum {2,-8} latest {3}' -f 'gh', $Installed, '2.48.0', $Installed)
         }
     }
@@ -42,7 +42,7 @@ Describe 'Assert-GhVersion' {
 
         Assert-GhVersion
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter {
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter {
             $Object -like '  gh *installed 2.101.0*latest 2.102.0  (update available)'
         }
     }
@@ -58,7 +58,7 @@ Describe 'Assert-GhVersion' {
 
         Assert-GhVersion
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter {
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter {
             $Object -eq ('  {0,-26} pinned {1,-28} latest {2}{3}' -f 'GitHub REST API', '2026-03-10', $Latest, $Note)
         }
     }
@@ -68,8 +68,8 @@ Describe 'Assert-GhVersion' {
 
         { Assert-GhVersion } | Should -Not -Throw
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  gh *installed 2.101.0*latest unknown' }
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  GitHub REST API *pinned 2026-03-10*latest unknown' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  gh *installed 2.101.0*latest unknown' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  GitHub REST API *pinned 2026-03-10*latest unknown' }
     }
 
     It 'skips the latest version lookups when asked' {
@@ -78,8 +78,8 @@ Describe 'Assert-GhVersion' {
         Assert-GhVersion -SkipLatestVersionCheck
 
         @(Get-TestGhCall | Where-Object { $_.Arguments[0] -eq 'api' }) | Should -BeNullOrEmpty
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  gh *installed 2.101.0*latest skipped' }
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  GitHub REST API *pinned 2026-03-10*latest skipped' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  gh *installed 2.101.0*latest skipped' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  GitHub REST API *pinned 2026-03-10*latest skipped' }
     }
 
     It 'rejects a gh older than the minimum with an upgrade command, without calling the API' {
@@ -90,12 +90,12 @@ Describe 'Assert-GhVersion' {
     }
 
     It 'asks to install gh when it is missing, without calling it' {
-        Mock -ModuleName Bootstrap.Common Test-GhInstalled { $false }
+        Mock -ModuleName GitHubOrg.Common Test-GhInstalled { $false }
         Register-TestGhStub
 
         { Assert-GhVersion } | Should -Throw '*not installed*winget install --id GitHub.cli -e*gh auth login*'
         @(Get-TestGhCall).Count | Should -Be 0
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  gh * installed missing *' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -like '  gh * installed missing *' }
     }
 
     It 'fails with the gh output when the version cannot be read' {
@@ -344,7 +344,7 @@ Describe 'Invoke-GhApi with a native gh' {
     It 'Assert-GhVersion finds gh on PATH and reads its version' {
         # Two lines, as gh prints them.
         Set-TestNativeGhRoute -Directory $script:ghDirectory -Route @{ '--version' = @{ ExitCode = 0; Output = "gh version 2.47.0 (2024-04-03)`nhttps://github.com/cli/cli/releases/tag/v2.47.0" } }
-        Mock -ModuleName Bootstrap.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
 
         { Assert-GhVersion } | Should -Throw '*gh 2.47.0 is older than 2.48.0*'
     }

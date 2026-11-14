@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.Common.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'ConfigError.ps1')
 
     function Get-TestShape {
@@ -215,7 +215,7 @@ Describe 'Test-IsGuid' {
 }
 
 Describe 'Get-ConfigPattern' {
-    It 'returns the <Name> pattern shared by the engines' -ForEach @(
+    It 'returns the <Name> pattern shared by the fields' -ForEach @(
         @{ Name = 'Guid'; Valid = 'AAAAAAAA-0000-0000-0000-00000000000f'; Invalid = 'not-a-guid' }
         @{ Name = 'Alias'; Valid = 'sub_prod-1'; Invalid = 'sub.prod' }
         @{ Name = 'Login'; Valid = 'octo-cat42'; Invalid = 'my_org' }
@@ -232,7 +232,7 @@ Describe 'Get-ConfigPattern' {
 }
 
 Describe 'Get-ConfigPatternNode' {
-    It 'returns the <Name> node shared by the engines' -ForEach @(
+    It 'returns the <Name> node shared by the fields' -ForEach @(
         @{ Name = 'Guid'; Rule = 'a GUID' }
         @{ Name = 'Alias'; Rule = "a subscription alias of letters, digits, '-' and '_'" }
         @{ Name = 'Login'; Rule = "a GitHub login of letters, digits and '-'" }

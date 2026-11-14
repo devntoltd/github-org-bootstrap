@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.Common.psm1') -Force
 
     function Get-TestShape {
         $shape = @{
@@ -475,10 +475,10 @@ Describe 'Get-RecommendationReport' {
 
 Describe 'Write-BootstrapWaiver' {
     It 'prints the waiver on its own line' {
-        Mock -ModuleName Bootstrap.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
 
         Write-BootstrapWaiver -Message 'Waived until 2027-04-01 (waiver): policy.locked - Needed for the demo'
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Waived until 2027-04-01 (waiver): policy.locked - Needed for the demo' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Waived until 2027-04-01 (waiver): policy.locked - Needed for the demo' }
     }
 }

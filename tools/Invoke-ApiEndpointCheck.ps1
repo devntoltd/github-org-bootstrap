@@ -40,7 +40,7 @@ param(
     # Print every difference, response fields included, and open nothing.
     [switch]$Report,
     # The module that pins the version.
-    [string]$ModulePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'shared/Bootstrap.Common.psm1'),
+    [string]$ModulePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'shared/GitHubOrg.Common.psm1'),
     # The endpoint catalog.
     [string]$CatalogPath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'engine/api-endpoints.psd1'),
     # The issue template of an operation.

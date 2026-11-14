@@ -8,7 +8,7 @@
     Copyright         = 'Copyright 2026 Devnto. Licensed under the Apache License, Version 2.0.'
     Description       = 'Keeps the settings of a GitHub organization in line with a config file: reads the organization, plans the difference, asks once and applies.'
     PowerShellVersion = '7.6'
-    # Bootstrap.Common (shared/) is imported by the caller first, never nested: see docs/architecture.md.
+    # GitHubOrg.Common (shared/) is imported by the caller first, never nested: see docs/architecture.md.
     FunctionsToExport = @(
         'Test-GitHubOrgConfig', 'Get-GitHubOrgConfigShape', 'Get-GitHubOrgSettingReference', 'Get-GitHubOrgReadField',
         'Get-WorkflowReviewerReport', 'Assert-GitHubOrgContext', 'Get-GitHubOrgState', 'Get-GitHubOrgPlan',

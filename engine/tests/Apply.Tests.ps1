@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 
@@ -15,7 +15,7 @@ Describe 'Invoke-GitHubOrgPlan' {
     BeforeEach {
         Register-TestGhStub -Responder { [pscustomobject]@{ ExitCode = 0; Output = '' } }
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
         $script:plan = @(Get-GitHubOrgPlan -Config (Get-TestGitHubOrgConfig) -CurrentState (Get-TestSettingsOnlyState))
     }
 
@@ -65,19 +65,19 @@ Describe 'Invoke-GitHubOrgPlan' {
         # The step format belongs to Write-ApplyProgress (shared/tests); here only one step per action, by its summary.
         Invoke-GitHubOrgPlan -Plan $script:plan
 
-        Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times $script:plan.Count -Exactly -ParameterFilter { $Activity -eq 'Applying changes' -and -not $Completed }
+        Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times $script:plan.Count -Exactly -ParameterFilter { $Activity -eq 'Applying changes' -and -not $Completed }
         foreach ($action in $script:plan) {
             $summary = [WildcardPattern]::Escape($action.Summary)
-            Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Status -like "*$summary" }
+            Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Status -like "*$summary" }
         }
-        Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Applying changes' -and $Completed }
+        Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Applying changes' -and $Completed }
     }
 
     It 'clears the progress when an action fails' {
         Register-TestGhStub -Responder { [pscustomobject]@{ ExitCode = 1; Output = 'gh: Validation Failed (HTTP 422)' } }
 
         { Invoke-GitHubOrgPlan -Plan $script:plan } | Should -Throw '*HTTP 422*'
-        Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Applying changes' -and $Completed }
+        Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Applying changes' -and $Completed }
     }
 
     It 'reports each applied action' {
@@ -91,7 +91,7 @@ Describe 'Invoke-GitHubOrgPlan' {
 Describe 'Invoke-GitHubOrgPlan: code security' {
     BeforeEach {
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
         $state = Get-MatchingTestGitHubOrgState
         $state.CodeSecurity = Get-EmptyTestCodeSecurityState
         $script:plan = @(Get-GitHubOrgPlan -Config (Get-TestGitHubOrgConfig) -CurrentState $state)
@@ -132,7 +132,7 @@ Describe 'Invoke-GitHubOrgPlan: ruleset' {
     BeforeEach {
         Register-TestGhStub -Responder { [pscustomobject]@{ ExitCode = 0; Output = '{}' } }
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
     }
 
     AfterEach {

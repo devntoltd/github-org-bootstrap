@@ -2,7 +2,7 @@
 .SYNOPSIS
 Opens an issue to review a GitHub REST API version newer than the one Invoke-GhApi pins, and prints the status.
 .DESCRIPTION
-The pinned version is $script:GitHubApiVersion in shared/Bootstrap.Common.psm1; the versions GitHub supports come from
+The pinned version is $script:GitHubApiVersion in shared/GitHubOrg.Common.psm1; the versions GitHub supports come from
 'gh api versions'. For a newer version the script opens one issue from the template
 .github/ISSUE_TEMPLATE/github-api-version.md (its title with the version appended, its labels, which must include
 'github-api-version', and assignees; above its body the version marker and the two versions). An issue with that label
@@ -17,7 +17,7 @@ the repository (GH_REPO in Actions, the git remote of the current directory othe
 [CmdletBinding(SupportsShouldProcess)]
 param(
     # The module that pins the version.
-    [string]$ModulePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'shared/Bootstrap.Common.psm1'),
+    [string]$ModulePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'shared/GitHubOrg.Common.psm1'),
     # The issue template of the review.
     [string]$TemplatePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath '.github/ISSUE_TEMPLATE/github-api-version.md')
 )
@@ -43,7 +43,7 @@ $status = if ([string]::CompareOrdinal($latest, $pinned) -le 0) {
 else {
     $marker = "<!-- github-api-version: $latest -->"
     $existing = Find-IssueByMarker -Issue @(Get-LabeledIssue -Label $label) -Marker $marker
-    $context = "GitHub supports REST API version ``$latest``; the engines pin ``$pinned`` (```$script:GitHubApiVersion`` in ``shared/Bootstrap.Common.psm1``)."
+    $context = "GitHub supports REST API version ``$latest``; the engine pins ``$pinned`` (```$script:GitHubApiVersion`` in ``shared/GitHubOrg.Common.psm1``)."
     $issue = @{
         Title            = "$($template.Title) $latest"
         Body             = "$marker`n$context`n`n$($template.Body)"

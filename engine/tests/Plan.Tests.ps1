@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 }
@@ -479,7 +479,7 @@ Describe 'Get-GitHubOrgWarning: checked settings outside the endpoint sections' 
 Describe 'Get-GitHubOrgWarning: unknown response fields' {
     BeforeEach {
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
     }
 
     AfterEach {

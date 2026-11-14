@@ -1,5 +1,5 @@
 # Config shapes: what a config must look like, checked before anything else. Dot-sourced into
-# Bootstrap.Common, so its functions share that module's scope (Pester -ModuleName Bootstrap.Common mocks).
+# GitHubOrg.Common, so its functions share that module's scope (Pester -ModuleName GitHubOrg.Common mocks).
 
 $script:ShapeTypeNames = @{
     object  = 'an object'
