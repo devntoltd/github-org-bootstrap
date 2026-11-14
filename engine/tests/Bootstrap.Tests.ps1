@@ -35,6 +35,7 @@ Describe 'engine/bootstrap.ps1' {
 
         $LASTEXITCODE | Should -Not -Be 0
         ($output -join "`n") | Should -Match 'ConfigPath'
+        ($output -join "`n") | Should -Match 'engine/examples/github\.json'
         @(Get-TestNativeGhCall -Directory $script:ghDirectory) | Should -BeNullOrEmpty
     }
 

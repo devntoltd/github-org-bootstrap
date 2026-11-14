@@ -12,6 +12,10 @@ release unchanged.
 
 - `engine/examples/run.ps1` stops when `.engine/` has local changes (an edited or added file), instead of running
   them, or deleting them when the pin changed; remove `.engine/` to check out the pinned engine again.
+- `engine/bootstrap.ps1` without `-ConfigPath` stops with an error that names the parameter and
+  `engine/examples/github.json`, instead of PowerShell's prompt for the value.
+- The `Manual:` line of a run says to rerun with `-WhatIf -ManualChecklist`, which holds however the engine was
+  started (`./run.ps1` included), instead of naming `./engine/bootstrap.ps1`.
 
 ## [1.0.0] - 2026-11-13
 

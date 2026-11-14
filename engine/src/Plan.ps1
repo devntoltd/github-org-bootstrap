@@ -317,7 +317,7 @@ function Get-ManualSummary {
         return $null
     }
     $settings = if ($rows.Count -eq 1) { '1 setting has' } else { "$($rows.Count) settings have" }
-    return "Manual: $settings no API read; this run did not check them. List them: ./engine/bootstrap.ps1 -ConfigPath <config> -WhatIf -ManualChecklist"
+    return "Manual: $settings no API read; this run did not check them. List them: rerun with -WhatIf -ManualChecklist."
 }
 
 function Format-ManualValue {
