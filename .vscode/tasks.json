@@ -167,6 +167,15 @@
       "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "dependencies"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
+    },
+    {
+      "label": "Release",
+      "detail": "Status of the release of ModuleVersion (-WhatIf, publishes nothing)",
+      "type": "process",
+      "command": "pwsh",
+      "args": ["-NoProfile", "-File", "${workspaceFolder}/build.ps1", "release"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
     }
   ]
 }
