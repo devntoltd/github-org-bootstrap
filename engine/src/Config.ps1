@@ -212,7 +212,7 @@ $script:SettingDefinitions = @(
 # Read-CodeSecurityState and Get-CodeSecurityAction). A section exists through its rows, so each one has a row.
 $script:ConfigSections = @($script:SettingDefinitions | ForEach-Object { $_.Section } | Select-Object -Unique)
 
-# The config format this stage reads: a config of the same major and a minor not above this one. The major changes when
+# The config format this engine reads: a config of the same major and a minor not above this one. The major changes when
 # a config needs an edit (a key added, removed, renamed or moved, a value no longer allowed); the minor when every
 # config of the format stays valid and means the same. Independent of the release version of the engine.
 $script:ConfigFormatVersion = '1.0'
@@ -424,9 +424,9 @@ function Test-GitHubOrgConfig {
     $version = $Config.configVersion
     $format = $null
     if ($version -is [string] -and $version -cmatch $shape.Fields['configVersion'].Pattern -and -not $version.EndsWith("`n") -and [version]::TryParse($version, [ref]$format)) {
-        $stage = [version]$script:ConfigFormatVersion
-        if ($format.Major -ne $stage.Major -or $format.Minor -gt $stage.Minor) {
-            return [string[]]@("configVersion '$version': this version of the engine reads config formats $($stage.Major).0 to $($stage.Major).$($stage.Minor). Update the engine or the config as the notes of the format say.")
+        $supported = [version]$script:ConfigFormatVersion
+        if ($format.Major -ne $supported.Major -or $format.Minor -gt $supported.Minor) {
+            return [string[]]@("configVersion '$version': this version of the engine reads config formats $($supported.Major).0 to $($supported.Major).$($supported.Minor). Update the engine or the config as the notes of the format say.")
         }
     }
     $errors = [string[]]@(Test-ConfigShape -Config $Config -Shape $shape)

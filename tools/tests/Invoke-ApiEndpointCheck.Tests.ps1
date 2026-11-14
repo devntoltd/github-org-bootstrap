@@ -6,7 +6,7 @@ BeforeAll {
     . (Join-Path -Path $PSScriptRoot -ChildPath 'GhMock.ps1')
 
     # A field of GET /orgs/{org} that a row of the engine reads, so it is in neither Fields nor a difference: the rows
-    # of the fake stage module the -Report tests import instead of the real one.
+    # of the fake engine module the -Report tests import instead of the real one.
     $script:rowField = 'test_row_field'
 
     # The catalog of the tests: a read GET with Fields and a write PATCH with Body, a list endpoint, an operation
@@ -145,9 +145,9 @@ Describe 'Invoke-ApiEndpointCheck.ps1' {
             ) -join "`n")
         $script:catalogPath = Join-Path -Path $folder -ChildPath 'api-endpoints.psd1'
         # The engine module of -Report: only the rows' read fields, so no test depends on a real row.
-        $script:stageModule = Join-Path -Path $folder -ChildPath 'TestEndpointStage.psm1'
-        Set-Content -Path $script:stageModule -Value "function Get-GitHubOrgReadField { @{ '/orgs/{org}' = @('$script:rowField') } }`nExport-ModuleMember -Function Get-GitHubOrgReadField"
-        $script:paths = @{ ModulePath = $script:module; TemplatePath = $script:template; CatalogPath = $script:catalogPath; StageModulePath = $script:stageModule }
+        $script:engineModule = Join-Path -Path $folder -ChildPath 'TestEndpointEngine.psm1'
+        Set-Content -Path $script:engineModule -Value "function Get-GitHubOrgReadField { @{ '/orgs/{org}' = @('$script:rowField') } }`nExport-ModuleMember -Function Get-GitHubOrgReadField"
+        $script:paths = @{ ModulePath = $script:module; TemplatePath = $script:template; CatalogPath = $script:catalogPath; EngineModulePath = $script:engineModule }
         $script:summary = Join-Path -Path $folder -ChildPath 'summary.md'
         $env:GITHUB_STEP_SUMMARY = $script:summary
 
@@ -183,7 +183,7 @@ Describe 'Invoke-ApiEndpointCheck.ps1' {
 
     AfterEach {
         $env:GITHUB_STEP_SUMMARY = $script:savedSummary
-        Remove-Module -Name TestEndpointStage -ErrorAction Ignore
+        Remove-Module -Name TestEndpointEngine -ErrorAction Ignore
     }
 
     It 'opens nothing when the description matches' {

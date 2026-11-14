@@ -104,19 +104,12 @@ Describe 'Install-DevTools.ps1' {
                 }
             }
         }
-        Mock Import-PowerShellDataFile -ParameterFilter { $Path -like '*modules.lock.psd1' } { @{ 'Az.Accounts' = '5.5.3'; 'Az.Resources' = '10.2.1' } }
-        Mock Import-PowerShellDataFile -ParameterFilter { $Path -like '*[\/]modules.psd1' } { @{ Modules = @('Az.Accounts', 'Az.Resources') } }
-        Mock Get-ChildItem -ParameterFilter { $Filter -eq 'modules.psd1' } {
-            [pscustomobject]@{
-                FullName  = (Join-Path -Path $script:root -ChildPath 'example-stage/modules.psd1')
-                Directory = [pscustomobject]@{ Name = 'example-stage' }
-            }
-        }
+        Mock Import-PowerShellDataFile -ParameterFilter { $Path -like '*modules.lock.psd1' } { @{ 'Example.Base' = '5.5.3'; 'Example.Tool' = '10.2.1' } }
         Mock Get-Module -ParameterFilter { $ListAvailable } {
             @{
                 Pester         = [pscustomobject]@{ Version = [version]'6.2.0' }
-                'Az.Accounts'  = [pscustomobject]@{ Version = [version]'5.5.3' }
-                'Az.Resources' = [pscustomobject]@{ Version = [version]'10.2.1' }
+                'Example.Base' = [pscustomobject]@{ Version = [version]'5.5.3' }
+                'Example.Tool' = [pscustomobject]@{ Version = [version]'10.2.1' }
             }[$Name]
         }
         Mock actionlint { '1.7.12'; 'installed by downloading from release page' }
@@ -191,8 +184,8 @@ Describe 'Install-DevTools.ps1' {
         Mock Get-Module -ParameterFilter { $ListAvailable } {
             @{
                 Pester         = [pscustomobject]@{ Version = [version]'6.3.0' }
-                'Az.Accounts'  = [pscustomobject]@{ Version = [version]'5.5.3' }
-                'Az.Resources' = [pscustomobject]@{ Version = [version]'10.2.1' }
+                'Example.Base' = [pscustomobject]@{ Version = [version]'5.5.3' }
+                'Example.Tool' = [pscustomobject]@{ Version = [version]'10.2.1' }
             }[$Name]
         }
 
@@ -207,29 +200,20 @@ Describe 'Install-DevTools.ps1' {
 
     It 'refuses a dependency that is not locked, before installing anything' {
         Mock Get-Module -ParameterFilter { $ListAvailable } { $null }
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Resources' } {
-            [pscustomobject]@{ Name = 'Az.Resources'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Az.Other'; VersionRange = '[1.0.0, )' }) }
+        Mock Find-PSResource -ParameterFilter { $Name -eq 'Example.Tool' } {
+            [pscustomobject]@{ Name = 'Example.Tool'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Example.Other'; VersionRange = '[1.0.0, )' }) }
         }
 
-        { & $script:installScript } | Should -Throw '*Az.Resources 10.2.1 needs Az.Other `[1.0.0, ), which is not in modules.lock.psd1*'
+        { & $script:installScript } | Should -Throw '*Example.Tool 10.2.1 needs Example.Other `[1.0.0, ), which is not in modules.lock.psd1*'
         Should -Invoke Install-PSResource -Times 0
     }
 
     It 'refuses a locked dependency outside the range' {
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Resources' } {
-            [pscustomobject]@{ Name = 'Az.Resources'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Az.Accounts'; VersionRange = '[5.6.0, )' }) }
+        Mock Find-PSResource -ParameterFilter { $Name -eq 'Example.Tool' } {
+            [pscustomobject]@{ Name = 'Example.Tool'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Example.Base'; VersionRange = '[5.6.0, )' }) }
         }
 
-        { & $script:installScript } | Should -Throw '*Az.Resources 10.2.1 needs Az.Accounts `[5.6.0, ); modules.lock.psd1 locks 5.5.3*'
-    }
-
-    It 'refuses a stage that lists a dependency after the module that imports it' {
-        Mock Import-PowerShellDataFile -ParameterFilter { $Path -like '*[\/]modules.psd1' } { @{ Modules = @('Az.Resources', 'Az.Accounts') } }
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Resources' } {
-            [pscustomobject]@{ Name = 'Az.Resources'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Az.Accounts'; VersionRange = '[5.5.3, )' }) }
-        }
-
-        { & $script:installScript } | Should -Throw '*example-stage/modules.psd1 must list Az.Accounts before Az.Resources*'
+        { & $script:installScript } | Should -Throw '*Example.Tool 10.2.1 needs Example.Base `[5.6.0, ); modules.lock.psd1 locks 5.5.3*'
     }
 
     It 'reads the version range <Range> of the Gallery' -ForEach @(
@@ -240,8 +224,8 @@ Describe 'Install-DevTools.ps1' {
         @{ Range = '[5.0.0, 5.5.3]'; Ok = $true }
         @{ Range = '[5.0.0, 5.5.3)'; Ok = $false }
     ) {
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Resources' } {
-            [pscustomobject]@{ Name = 'Az.Resources'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Az.Accounts'; VersionRange = $Range }) }
+        Mock Find-PSResource -ParameterFilter { $Name -eq 'Example.Tool' } {
+            [pscustomobject]@{ Name = 'Example.Tool'; Version = '10.2.1'; Dependencies = @([pscustomobject]@{ Name = 'Example.Base'; VersionRange = $Range }) }
         }
 
         if ($Ok) {

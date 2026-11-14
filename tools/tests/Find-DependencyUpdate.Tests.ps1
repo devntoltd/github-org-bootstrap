@@ -24,8 +24,8 @@ Describe 'Find-DependencyUpdate.ps1' {
         Set-Content -Path (Join-Path -Path $folder -ChildPath 'modules.lock.psd1') -Value @(
             '# Exact versions.'
             '@{'
-            "    'Az.Accounts'  = '5.5.3'"
-            "    'Az.Resources' = '10.2.1'"
+            "    'Example.Base' = '5.5.3'"
+            "    'Example.Tool' = '10.2.1'"
             '}'
         )
         Set-Content -Path (Join-Path -Path $folder -ChildPath 'dev-tools.psd1') -Value @(
@@ -52,8 +52,8 @@ Describe 'Find-DependencyUpdate.ps1' {
             $number = if ($args[1] -match '[?&]page=(\d+)') { [int]$Matches[1] } else { 1 }
             ConvertTo-Json -InputObject @($TestReleases | Select-Object -Skip (($number - 1) * $size) -First $size) -Depth 5
         }
-        Mock Find-PSResource { Get-TestGalleryVersion -Name $Name -Version '5.5.3' -Days 100 } -ParameterFilter { $Name -eq 'Az.Accounts' }
-        Mock Find-PSResource { Get-TestGalleryVersion -Name $Name -Version '10.2.1' -Days 100 } -ParameterFilter { $Name -eq 'Az.Resources' }
+        Mock Find-PSResource { Get-TestGalleryVersion -Name $Name -Version '5.5.3' -Days 100 } -ParameterFilter { $Name -eq 'Example.Base' }
+        Mock Find-PSResource { Get-TestGalleryVersion -Name $Name -Version '10.2.1' -Days 100 } -ParameterFilter { $Name -eq 'Example.Tool' }
         Mock Find-PSResource { Get-TestGalleryVersion -Name $Name -Version '6.2.0' -Days 100 } -ParameterFilter { $Name -eq 'Pester' }
         Mock Write-Host { }
         $script:arguments = @{ Root = $folder; Now = $now; PassThru = $true }
@@ -64,7 +64,7 @@ Describe 'Find-DependencyUpdate.ps1' {
 
         @($result.Candidates) | Should -BeNullOrEmpty
         @($result.Quarantined) | Should -BeNullOrEmpty
-        Should -Invoke Find-PSResource -Times 1 -Exactly -ParameterFilter { $Name -eq 'Az.Accounts' -and $Version -eq '*' -and $Repository -eq 'PSGallery' }
+        Should -Invoke Find-PSResource -Times 1 -Exactly -ParameterFilter { $Name -eq 'Example.Base' -and $Version -eq '*' -and $Repository -eq 'PSGallery' }
         $releaseCalls = @($TestGhCalls | Where-Object { $_[0] -eq 'api' -and $_[1] -eq 'repos/lycheeverse/lychee/releases?per_page=100&page=1' })
         $releaseCalls.Count | Should -Be 1
         Get-GhOption -Call $releaseCalls[0] -Name '--header' | Should -Be 'X-GitHub-Api-Version: 2026-03-10'
@@ -72,7 +72,7 @@ Describe 'Find-DependencyUpdate.ps1' {
     }
 
     It 'takes the newest version out of quarantine and lists the newer one still in it' {
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Accounts' } {
+        Mock Find-PSResource -ParameterFilter { $Name -eq 'Example.Base' } {
             Get-TestGalleryVersion -Name $Name -Version '5.5.3' -Days 100
             Get-TestGalleryVersion -Name $Name -Version '5.6.0' -Days 10
             Get-TestGalleryVersion -Name $Name -Version '5.7.0' -Days 3
@@ -87,7 +87,7 @@ Describe 'Find-DependencyUpdate.ps1' {
         $candidate[0].Locked | Should -Be '5.5.3'
         $candidate[0].Version | Should -Be '5.6.0'
         $candidate[0].Published | Should -Be '2026-09-25'
-        $candidate[0].Notes | Should -Be 'https://www.powershellgallery.com/packages/Az.Accounts/5.6.0'
+        $candidate[0].Notes | Should -Be 'https://www.powershellgallery.com/packages/Example.Base/5.6.0'
         $waiting = @($result.Quarantined)
         $waiting.Count | Should -Be 1
         $waiting[0].Version | Should -Be '5.7.0'
@@ -108,7 +108,7 @@ Describe 'Find-DependencyUpdate.ps1' {
     }
 
     It 'skips unlisted versions, which the Gallery dates 1900-01-01' {
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Accounts' } {
+        Mock Find-PSResource -ParameterFilter { $Name -eq 'Example.Base' } {
             Get-TestGalleryVersion -Name $Name -Version '5.5.3' -Days 100
             [pscustomobject]@{ Name = $Name; Version = [version]'5.6.0'; PublishedDate = [datetime]'1900-01-01'; Prerelease = '' }
         }
@@ -179,7 +179,7 @@ Describe 'Find-DependencyUpdate.ps1' {
     }
 
     It 'writes the module candidates into the lock files with -UpdateLock and leaves the comments and tools' {
-        Mock Find-PSResource -ParameterFilter { $Name -eq 'Az.Accounts' } { Get-TestGalleryVersion -Name $Name -Version '5.6.0' -Days 10 }
+        Mock Find-PSResource -ParameterFilter { $Name -eq 'Example.Base' } { Get-TestGalleryVersion -Name $Name -Version '5.6.0' -Days 10 }
         Mock Find-PSResource -ParameterFilter { $Name -eq 'Pester' } { Get-TestGalleryVersion -Name $Name -Version '6.3.0' -Days 10 }
         $script:TestReleases = @(Get-TestRelease -Tag 'lychee-v0.25.0' -Published '2026-09-01T00:00:00Z')
 
@@ -187,8 +187,8 @@ Describe 'Find-DependencyUpdate.ps1' {
 
         $lockPath = Join-Path -Path $folder -ChildPath 'modules.lock.psd1'
         $lock = Import-PowerShellDataFile -Path $lockPath
-        $lock['Az.Accounts'] | Should -Be '5.6.0'
-        $lock['Az.Resources'] | Should -Be '10.2.1'
+        $lock['Example.Base'] | Should -Be '5.6.0'
+        $lock['Example.Tool'] | Should -Be '10.2.1'
         (Get-Content -Path $lockPath -Raw) | Should -Match '# Exact versions\.'
         $devTools = Import-PowerShellDataFile -Path (Join-Path -Path $folder -ChildPath 'dev-tools.psd1')
         $devTools.Modules.Pester | Should -Be '6.3.0'

@@ -89,8 +89,8 @@ Describe 'Write-BootstrapRecommendation' {
 
 Describe 'Confirm-BootstrapPlan' {
     BeforeAll {
-        # A stage stand-in: Confirm-BootstrapPlan calls ShouldProcess on the cmdlet it is given.
-        function Invoke-TestStage {
+        # A command stand-in: Confirm-BootstrapPlan calls ShouldProcess on the cmdlet it is given.
+        function Invoke-TestCommand {
             [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Confirm-BootstrapPlan calls ShouldProcess on this cmdlet.')]
             [CmdletBinding(SupportsShouldProcess)]
             param([AllowEmptyCollection()][object[]]$Plan, [switch]$Force)
@@ -106,7 +106,7 @@ Describe 'Confirm-BootstrapPlan' {
     }
 
     It 'asks with the number of changes and the target, and applies on yes' {
-        Invoke-TestStage -Plan $script:twoActions | Should -BeTrue
+        Invoke-TestCommand -Plan $script:twoActions | Should -BeTrue
 
         Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Prompt -eq 'Apply 2 change(s) to tenant t1? [y/N]' }
     }
@@ -119,7 +119,7 @@ Describe 'Confirm-BootstrapPlan' {
         $script:answer = $Answer
         Mock -ModuleName Bootstrap.Common Read-Host { $script:answer }
 
-        Invoke-TestStage -Plan $script:twoActions | Should -BeTrue
+        Invoke-TestCommand -Plan $script:twoActions | Should -BeTrue
     }
 
     It 'aborts on the answer <Name>' -ForEach @(
@@ -130,17 +130,17 @@ Describe 'Confirm-BootstrapPlan' {
         $script:answer = $Answer
         Mock -ModuleName Bootstrap.Common Read-Host { $script:answer }
 
-        { Invoke-TestStage -Plan $script:twoActions } | Should -Throw '*Aborted by operator*'
+        { Invoke-TestCommand -Plan $script:twoActions } | Should -Throw '*Aborted by operator*'
     }
 
     It 'does not ask for an empty plan' {
-        Invoke-TestStage -Plan @() | Should -BeFalse
+        Invoke-TestCommand -Plan @() | Should -BeFalse
 
         Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
     }
 
     It 'does not ask with -Force' {
-        Invoke-TestStage -Plan $script:twoActions -Force | Should -BeTrue
+        Invoke-TestCommand -Plan $script:twoActions -Force | Should -BeTrue
 
         Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
     }
@@ -149,7 +149,7 @@ Describe 'Confirm-BootstrapPlan' {
         @{ Force = $false }
         @{ Force = $true }
     ) {
-        Invoke-TestStage -Plan $script:twoActions -Force:$Force -WhatIf | Should -BeFalse
+        Invoke-TestCommand -Plan $script:twoActions -Force:$Force -WhatIf | Should -BeFalse
 
         Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
     }

@@ -46,7 +46,7 @@ param(
     # The issue template of an operation.
     [string]$TemplatePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath '.github/ISSUE_TEMPLATE/api-endpoint.md'),
     # The engine module whose Get-GitHubOrgReadField names the response fields the rows read (-Report only).
-    [string]$StageModulePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'engine/GitHubOrg.psm1')
+    [string]$EngineModulePath = (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'engine/GitHubOrg.psm1')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -363,7 +363,7 @@ foreach ($key in @($listed.Keys | Sort-Object -CaseSensitive)) {
         if ($null -eq $readFields) {
             # The engine module uses the shared module, which its callers import first.
             Import-Module $ModulePath
-            Import-Module $StageModulePath
+            Import-Module $EngineModulePath
             $readFields = Get-GitHubOrgReadField
         }
         $known = @(@($operation.Operation.Fields.Keys) + @($readFields[$operation.Path]))
