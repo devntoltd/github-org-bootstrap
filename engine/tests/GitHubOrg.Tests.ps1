@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 }
@@ -8,14 +8,14 @@ Describe '<Name>' -ForEach @(
     @{ Name = 'examples/github.json'; Path = '../examples/github.json' }
 ) {
     It 'is a valid config' {
-        Mock -ModuleName Bootstrap.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
         $config = Import-BootstrapConfig -Path (Join-Path -Path $PSScriptRoot -ChildPath $Path)
 
         Test-GitHubOrgConfig -Config $config | Should -BeNullOrEmpty
     }
 
     It 'covers every deviation from a recommendation with an exception' {
-        Mock -ModuleName Bootstrap.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
         $config = Import-BootstrapConfig -Path (Join-Path -Path $PSScriptRoot -ChildPath $Path)
 
         # Any day before the first expiry: an expired exception is a runtime warning, by design, not a reason to fail CI.
@@ -52,14 +52,14 @@ Describe 'Invoke-GitHubOrgBootstrap' {
         Mock -ModuleName GitHubOrg Write-BootstrapWaiver { }
         # The manual summary line, printed by the engine itself.
         Mock -ModuleName GitHubOrg Write-Host { }
-        Mock -ModuleName Bootstrap.Common Write-Host { }
-        Mock -ModuleName Bootstrap.Common Read-Host { 'y' }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Read-Host { 'y' }
     }
 
     It 'reminds to remove the admin scopes after <Name>' -ForEach @(
         @{ Name = 'a successful run'; Arrange = { }; Run = { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -Force } }
         @{ Name = 'a dry run'; Arrange = { }; Run = { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -WhatIf } }
-        @{ Name = 'an abort'; Arrange = { Mock -ModuleName Bootstrap.Common Read-Host { 'n' } }; Run = { { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath } | Should -Throw '*Aborted by operator*' } }
+        @{ Name = 'an abort'; Arrange = { Mock -ModuleName GitHubOrg.Common Read-Host { 'n' } }; Run = { { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath } | Should -Throw '*Aborted by operator*' } }
         @{ Name = 'an error'; Arrange = { Mock -ModuleName GitHubOrg Invoke-GitHubOrgPlan { throw 'boom' } }; Run = { { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -Force } | Should -Throw 'boom' } }
     ) {
         . $Arrange
@@ -81,8 +81,8 @@ Describe 'Invoke-GitHubOrgBootstrap' {
         Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -WhatIf
 
         Should -Invoke Assert-GitHubOrgContext -ModuleName GitHubOrg -Times 1 -Exactly -ParameterFilter { $Organization -eq 'contoso' }
-        Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Planned changes (16):' }
+        Should -Invoke Read-Host -ModuleName GitHubOrg.Common -Times 0 -Exactly
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Planned changes (16):' }
         # Eight checked settings differ, and SHA pinning becomes required.
         Should -Invoke Write-Warning -ModuleName GitHubOrg -Times 9 -Exactly
         Should -Invoke Invoke-GitHubOrgPlan -ModuleName GitHubOrg -Times 0 -Exactly
@@ -142,8 +142,8 @@ Describe 'Invoke-GitHubOrgBootstrap' {
         Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -Force
 
         Should -Invoke Invoke-GitHubOrgPlan -ModuleName GitHubOrg -Times 1 -Exactly -ParameterFilter { $Plan.Count -eq 16 }
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Done. Applied 16 change(s).' }
-        Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Done. Applied 16 change(s).' }
+        Should -Invoke Read-Host -ModuleName GitHubOrg.Common -Times 0 -Exactly
     }
 
     It 'prints the warnings and waivers of one recommendation report, recommendations first' {
@@ -192,11 +192,11 @@ Describe 'Invoke-GitHubOrgBootstrap' {
 
     It 'asks after printing the plan, warnings and waivers, and applies on yes' {
         $script:calls = [System.Collections.Generic.List[string]]::new()
-        Mock -ModuleName Bootstrap.Common Write-Host { if ($Object -like 'Planned changes*') { $script:calls.Add('plan') } }
+        Mock -ModuleName GitHubOrg.Common Write-Host { if ($Object -like 'Planned changes*') { $script:calls.Add('plan') } }
         Mock -ModuleName GitHubOrg Write-Warning { $script:calls.Add('warning') }
         Mock -ModuleName GitHubOrg Get-RecommendationReport { [pscustomobject]@{ Warnings = @(); Waivers = @('a waiver') } }
         Mock -ModuleName GitHubOrg Write-BootstrapWaiver { $script:calls.Add('waiver') }
-        Mock -ModuleName Bootstrap.Common Read-Host { $script:calls.Add('ask'); 'y' }
+        Mock -ModuleName GitHubOrg.Common Read-Host { $script:calls.Add('ask'); 'y' }
 
         Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath
 
@@ -207,12 +207,12 @@ Describe 'Invoke-GitHubOrgBootstrap' {
         $script:calls.LastIndexOf('waiver') | Should -BeLessThan $ask
         $script:calls.LastIndexOf('warning') | Should -BeLessThan $script:calls.IndexOf('waiver')
         $script:calls[-1] | Should -Be 'ask'
-        Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Prompt -eq 'Apply 16 change(s) to GitHub organization contoso? [y/N]' }
+        Should -Invoke Read-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Prompt -eq 'Apply 16 change(s) to GitHub organization contoso? [y/N]' }
         Should -Invoke Invoke-GitHubOrgPlan -ModuleName GitHubOrg -Times 1 -Exactly
     }
 
     It 'writes nothing when the operator answers no' {
-        Mock -ModuleName Bootstrap.Common Read-Host { 'n' }
+        Mock -ModuleName GitHubOrg.Common Read-Host { 'n' }
 
         { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath } | Should -Throw '*Aborted by operator*'
 
@@ -244,7 +244,7 @@ Describe 'Invoke-GitHubOrgBootstrap' {
         Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath
 
         Should -Invoke Write-Warning -ModuleName GitHubOrg -Times 1 -Exactly -ParameterFilter { $Message -like '*two_factor_requirement_enabled is false*' }
-        Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
+        Should -Invoke Read-Host -ModuleName GitHubOrg.Common -Times 0 -Exactly
         Should -Invoke Invoke-GitHubOrgPlan -ModuleName GitHubOrg -Times 0 -Exactly
     }
 
@@ -257,7 +257,7 @@ Describe 'Invoke-GitHubOrgBootstrap' {
 
         Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -WhatIf
 
-        Should -Invoke Write-Host -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Planned changes (16):' }
+        Should -Invoke Write-Host -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Object -eq 'Planned changes (16):' }
         Should -Invoke Invoke-GitHubOrgPlan -ModuleName GitHubOrg -Times 0 -Exactly
     }
 
@@ -296,8 +296,8 @@ Describe 'Invoke-GitHubOrgBootstrap manual settings' {
         Mock -ModuleName GitHubOrg Write-BootstrapRecommendation { }
         Mock -ModuleName GitHubOrg Write-BootstrapWaiver { }
         Mock -ModuleName GitHubOrg Write-Host { $script:calls.Add([string]$Object) }
-        Mock -ModuleName Bootstrap.Common Write-Host { }
-        Mock -ModuleName Bootstrap.Common Read-Host { $script:calls.Add('ask'); 'y' }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Read-Host { $script:calls.Add('ask'); 'y' }
     }
 
     AfterEach {
@@ -517,7 +517,7 @@ Describe 'Invoke-GitHubOrgBootstrap manual settings' {
         $config | ConvertTo-Json -Depth 10 | Set-Content -Path $script:configPath -Encoding utf8
         Mock -ModuleName GitHubOrg Write-Warning { $script:calls.Add("warning: $Message") }
         Mock -ModuleName GitHubOrg Write-BootstrapRecommendation { $script:calls.Add("recommendation: $Message $Command") }
-        Mock -ModuleName Bootstrap.Common Write-Host { $script:calls.Add([string]$Object) }
+        Mock -ModuleName GitHubOrg.Common Write-Host { $script:calls.Add([string]$Object) }
 
         Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -WhatIf -ManualChecklist
 
@@ -603,8 +603,8 @@ Describe 'Invoke-GitHubOrgBootstrap page walk' {
         Mock -ModuleName GitHubOrg Test-InteractiveHost { $true }
         Mock -ModuleName GitHubOrg Open-SettingPage { $script:opened.Add($Url) }
         Mock -ModuleName GitHubOrg Read-Host { $script:calls.Add('next'); '' }
-        Mock -ModuleName Bootstrap.Common Write-Host { }
-        Mock -ModuleName Bootstrap.Common Read-Host { $script:calls.Add('ask'); 'y' }
+        Mock -ModuleName GitHubOrg.Common Write-Host { }
+        Mock -ModuleName GitHubOrg.Common Read-Host { $script:calls.Add('ask'); 'y' }
     }
 
     It 'walks the pages before the confirmation with <Case>' -ForEach @(
@@ -700,7 +700,7 @@ Describe 'Invoke-GitHubOrgBootstrap page walk' {
     }
 
     It 'calls no API during the walk' {
-        Mock -ModuleName Bootstrap.Common Invoke-GhApi { throw 'no API call expected' }
+        Mock -ModuleName GitHubOrg.Common Invoke-GhApi { throw 'no API call expected' }
         Mock -ModuleName GitHubOrg Invoke-GhApi { throw 'no API call expected' }
 
         { Invoke-GitHubOrgBootstrap -ConfigPath $script:configPath -WhatIf -PageWalk } | Should -Not -Throw

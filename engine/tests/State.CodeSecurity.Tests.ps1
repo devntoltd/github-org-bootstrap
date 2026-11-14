@@ -1,12 +1,12 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 }
 
 Describe 'Get-GitHubOrgState: code security' {
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
         $script:config = Get-TestGitHubOrgConfig
     }
 

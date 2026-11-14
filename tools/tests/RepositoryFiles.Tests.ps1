@@ -50,7 +50,7 @@ Describe 'Engine files' {
         $root = Resolve-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath '../..')
         # The engine and the shared code: issue numbers of the repository it came from would point at other issues here.
         # The READMEs are docs; settings.md and github.schema.json are generated from the rows.
-        $files = @(git -C $root ls-files 'engine' 'shared/src' 'shared/tests' 'shared/Bootstrap.Common.psm1' |
+        $files = @(git -C $root ls-files 'engine' 'shared/src' 'shared/tests' 'shared/GitHubOrg.Common.psm1' |
                 Where-Object { $_ -notin 'engine/README.md', 'engine/github.json', 'engine/settings.md', 'engine/github.schema.json' })
         $found = @(foreach ($file in $files) {
                 Select-String -LiteralPath (Join-Path -Path $root -ChildPath $file) -Pattern '(?<![\w&])#\d+\b' |

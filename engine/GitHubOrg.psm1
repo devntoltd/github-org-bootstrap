@@ -1,4 +1,4 @@
-# Uses functions from shared/Bootstrap.Common.psm1; the caller (bootstrap.ps1, tests) imports it first.
+# Uses functions from shared/GitHubOrg.Common.psm1; the caller (bootstrap.ps1, tests) imports it first.
 $ErrorActionPreference = 'Stop'
 
 # Dot-sourced so every function lives in this module's scope (Pester -ModuleName GitHubOrg mocks rely on it).

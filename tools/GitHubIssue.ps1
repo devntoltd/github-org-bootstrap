@@ -1,8 +1,8 @@
 # Helpers of the scripts in tools/ that call GitHub through gh and open issues from a template; dot-sourced, not
 # runnable on its own.
 
-# The GitHub REST API version the engines pin: the line $script:GitHubApiVersion = 'yyyy-MM-dd' of the module at $Path
-# (shared/Bootstrap.Common.psm1). gh api calls of the scripts send it too, so their response shapes are reviewed with it.
+# The GitHub REST API version the engine pins: the line $script:GitHubApiVersion = 'yyyy-MM-dd' of the module at $Path
+# (shared/GitHubOrg.Common.psm1). gh api calls of the scripts send it too, so their response shapes are reviewed with it.
 function Get-PinnedGitHubApiVersion {
     param([string]$Path)
 

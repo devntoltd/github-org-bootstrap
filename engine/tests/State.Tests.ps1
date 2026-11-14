@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 }
@@ -21,13 +21,13 @@ Describe 'Assert-GitHubOrgContext' {
     }
 
     It 'passes for an active owner and shows the organization and account without asking' {
-        Mock -ModuleName Bootstrap.Common Read-Host { 'y' }
+        Mock -ModuleName GitHubOrg.Common Read-Host { 'y' }
 
         Assert-GitHubOrgContext -Organization 'contoso'
 
         Should -Invoke Write-Host -ModuleName GitHubOrg -Times 1 -Exactly -ParameterFilter { $Object -eq 'Organization: contoso' }
         Should -Invoke Write-Host -ModuleName GitHubOrg -Times 1 -Exactly -ParameterFilter { $Object -eq 'Account:      octocat' }
-        Should -Invoke Read-Host -ModuleName Bootstrap.Common -Times 0 -Exactly
+        Should -Invoke Read-Host -ModuleName GitHubOrg.Common -Times 0 -Exactly
         Should -Invoke Write-BootstrapRecommendation -ModuleName GitHubOrg -Times 0 -Exactly
     }
 
@@ -74,7 +74,7 @@ Describe 'Assert-GitHubOrgContext' {
 
 Describe 'Get-GitHubOrgState' {
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
     }
 
     AfterEach {
@@ -89,15 +89,15 @@ Describe 'Get-GitHubOrgState' {
         Get-GitHubOrgState -Config (Get-TestGitHubOrgConfig) | Out-Null
 
         $reads = @(Get-TestGhCall).Count
-        Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times $reads -Exactly -ParameterFilter { $Activity -eq 'Reading current state' -and $Status }
-        Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Reading current state' -and $Completed }
+        Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times $reads -Exactly -ParameterFilter { $Activity -eq 'Reading current state' -and $Status }
+        Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Reading current state' -and $Completed }
     }
 
     It 'clears the progress when a read fails' {
         Register-TestGhRoute -Route @{}
 
         { Get-GitHubOrgState -Config (Get-TestGitHubOrgConfig) } | Should -Throw '*Cannot read orgs/contoso*'
-        Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Reading current state' -and $Completed }
+        Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times 1 -Exactly -ParameterFilter { $Activity -eq 'Reading current state' -and $Completed }
     }
 
     It 'records when the reads ended, in UTC' {
@@ -180,7 +180,7 @@ Describe 'Get-GitHubOrgState' {
 
 Describe 'Get-GitHubOrgState: Actions policies' {
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
     }
 
     AfterEach {
@@ -222,7 +222,7 @@ Describe 'Get-GitHubOrgState: Actions policies' {
 
 Describe 'Get-GitHubOrgState: observations' {
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
     }
 
     AfterEach {

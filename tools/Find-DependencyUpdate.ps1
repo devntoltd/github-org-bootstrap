@@ -40,7 +40,7 @@ $devTools = Import-PowerShellDataFile -Path (Join-Path -Path $Root -ChildPath $d
 $cutoff = $Now.AddDays(-$QuarantineDays)
 # The most GitHub returns per page of releases.
 $releasePageSize = 100
-$apiVersion = Get-PinnedGitHubApiVersion -Path (Join-Path -Path $Root -ChildPath 'shared/Bootstrap.Common.psm1')
+$apiVersion = Get-PinnedGitHubApiVersion -Path (Join-Path -Path $Root -ChildPath 'shared/GitHubOrg.Common.psm1')
 $candidates = [System.Collections.Generic.List[object]]::new()
 $quarantined = [System.Collections.Generic.List[object]]::new()
 

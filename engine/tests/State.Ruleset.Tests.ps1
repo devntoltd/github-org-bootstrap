@@ -1,5 +1,5 @@
 BeforeAll {
-    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+    Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
     Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force
     . (Join-Path -Path $PSScriptRoot -ChildPath 'TestData.ps1')
 
@@ -24,7 +24,7 @@ BeforeAll {
 
 Describe 'Get-GitHubOrgState: ruleset' {
     BeforeEach {
-        Mock -ModuleName Bootstrap.Common Write-Progress { }
+        Mock -ModuleName GitHubOrg.Common Write-Progress { }
         $script:config = Get-TestGitHubOrgConfig
         $script:routes = Get-TestGhRoute -State (Get-MatchingTestGitHubOrgState)
         $script:sha = '0123456789abcdef0123456789abcdef01234567'
@@ -279,7 +279,7 @@ Describe 'Get-GitHubOrgState: ruleset' {
             'Copilot plan'                  = 1
         }
         foreach ($expectedStatus in $expected.Keys) {
-            Should -Invoke Write-Progress -ModuleName Bootstrap.Common -Times $expected[$expectedStatus] -Exactly -ParameterFilter { $Status -eq $expectedStatus }
+            Should -Invoke Write-Progress -ModuleName GitHubOrg.Common -Times $expected[$expectedStatus] -Exactly -ParameterFilter { $Status -eq $expectedStatus }
         }
     }
 }

@@ -46,7 +46,7 @@ if (-not $ConfigPath) {
 }
 
 # The engine needs no PowerShell modules besides shared.
-Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../shared/Bootstrap.Common.psm1') -Force
+Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../shared/GitHubOrg.Common.psm1') -Force
 Import-Module (Join-Path -Path $PSScriptRoot -ChildPath 'GitHubOrg.psd1') -Force
 
 # The gh version check runs inside, after the config is validated.

@@ -14,7 +14,7 @@ Describe 'engine/GitHubOrg.psd1' {
 
     It 'exports exactly the functions the module exports' {
         $data = Import-PowerShellDataFile -Path $script:manifestPath
-        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/Bootstrap.Common.psm1') -Force
+        Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../../shared/GitHubOrg.Common.psm1') -Force
         $module = Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../GitHubOrg.psm1') -Force -PassThru
 
         @($data.FunctionsToExport | Sort-Object) | Should -Be @($module.ExportedFunctions.Keys | Sort-Object)

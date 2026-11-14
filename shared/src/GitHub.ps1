@@ -1,5 +1,5 @@
 # GitHub: the gh version and every GitHub REST call. Dot-sourced into
-# Bootstrap.Common, so its functions share that module's scope (Pester -ModuleName Bootstrap.Common mocks).
+# GitHubOrg.Common, so its functions share that module's scope (Pester -ModuleName GitHubOrg.Common mocks).
 
 # The oldest gh Invoke-GhApi works with: 'gh api --paginate --slurp' needs 2.48.0.
 $script:GhMinimumVersion = '2.48.0'
