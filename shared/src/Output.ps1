@@ -1,8 +1,8 @@
-# Output every stage shares: progress, plan, recommendations, waivers, summary and the confirmation. Dot-sourced into
+# Output of a run: progress, plan, recommendations, waivers, summary and the confirmation. Dot-sourced into
 # Bootstrap.Common, so its functions share that module's scope (Pester -ModuleName Bootstrap.Common mocks).
 
-# Progress of the two slow steps of every stage. Each stage shows it while reading the state and while applying the
-# plan, and calls Complete-BootstrapProgress in a finally block so the bar disappears on errors too.
+# Progress of the two slow steps of a run, shown while reading the state and while applying the plan; the caller
+# calls Complete-BootstrapProgress in a finally block so the bar disappears on errors too.
 $script:StateActivity = 'Reading current state'
 $script:ApplyActivity = 'Applying changes'
 

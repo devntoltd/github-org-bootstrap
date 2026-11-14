@@ -1,5 +1,5 @@
 # The one config error of $Path among $Errors, holding every part of $Part; fails otherwise. The wording of the shape
-# errors is checked in shared/tests, so a stage test passes only the parts it is about: the value, the allowed values,
+# errors is checked in shared/tests, so an engine test passes only the parts it is about: the value, the allowed values,
 # a rule of its own. The path is compared as text: '[' and '*' in a path are no wildcards. -Only: it is the only error.
 function Assert-ConfigError {
     param([string[]]$Errors, [string]$Path, [string[]]$Part = @(), [switch]$Only)

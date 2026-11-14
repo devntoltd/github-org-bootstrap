@@ -1,4 +1,4 @@
-# The position of the action $Action on $Target in a plan of any stage, -1 when the plan has none.
+# The position of the action $Action on $Target in a plan, -1 when the plan has none.
 function Get-PlanIndex {
     param([object[]]$Plan, [string]$Action, [string]$Target)
 
@@ -10,7 +10,7 @@ function Get-PlanIndex {
     return -1
 }
 
-# The first action $Action of a plan of any stage, on $Target when it is given; $null when the plan has none (an index
+# The first action $Action of a plan, on $Target when it is given; $null when the plan has none (an index
 # of -1 would read the last action instead).
 function Get-PlanAction {
     param([object[]]$Plan, [string]$Action, [string]$Target)

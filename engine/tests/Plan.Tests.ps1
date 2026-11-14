@@ -654,7 +654,7 @@ Describe 'Get-GitHubOrgPlan: Actions policies' {
 }
 
 Describe 'Get-GitHubOrgPlan: summaries' {
-    It 'starts every summary with the marker of the other stages: + creates or adds, ~ changes' {
+    It 'starts every summary with its marker: + creates or adds, ~ changes' {
         $plan = @(Get-GitHubOrgPlan -Config (Get-TestGitHubOrgConfig) -CurrentState (Get-DefaultTestGitHubOrgState))
 
         $plan.Count | Should -BeGreaterThan 0

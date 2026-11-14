@@ -1,4 +1,4 @@
-# Loading a stage config file. Dot-sourced into
+# Loading a config file. Dot-sourced into
 # Bootstrap.Common, so its functions share that module's scope (Pester -ModuleName Bootstrap.Common mocks).
 
 function Import-BootstrapConfig {

@@ -1,4 +1,4 @@
-# The gh CLI replaced by a global function, for the tests of every stage that calls GitHub through Invoke-GhApi,
+# The gh CLI replaced by a global function, for the tests of everything that calls GitHub through Invoke-GhApi,
 # with the responses gh prints (objects, lists read page by page) and routes that answer by method and endpoint.
 # Dot-sourced by the test files; not a test file itself.
 

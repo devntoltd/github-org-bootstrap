@@ -1,4 +1,4 @@
-# Config shapes: what a stage config must look like, checked before anything else. Dot-sourced into
+# Config shapes: what a config must look like, checked before anything else. Dot-sourced into
 # Bootstrap.Common, so its functions share that module's scope (Pester -ModuleName Bootstrap.Common mocks).
 
 $script:ShapeTypeNames = @{
@@ -17,7 +17,7 @@ $script:ShapeNodeKeys = [System.Collections.Generic.HashSet[string]]::new([strin
         'Pattern', 'Rule', 'SchemaEnum', 'Values', 'Minimum', 'Maximum', 'RuleExceptions', 'Nullable', 'Recommended', 'Why', 'Description', 'Sensitive'
     ), [StringComparer]::Ordinal)
 
-# Patterns used by more than one stage, with the rule a validation error names, so every field that takes one reports
+# Patterns used by more than one field, with the rule a validation error names, so every field that takes one reports
 # it the same way. Written with '$' as JSON Schema patterns; Test-ShapePattern anchors them.
 $script:ConfigPatterns = @{
     Guid  = @{ Pattern = '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'; Rule = 'a GUID' }
@@ -29,7 +29,7 @@ $script:ConfigPatterns = @{
 function Get-ConfigPattern {
     <#
     .SYNOPSIS
-    A pattern used by more than one stage config: Guid, Alias (a subscription alias) or Login (a GitHub login of a user or an organization).
+    A pattern used by more than one field of a config: Guid, Alias (a subscription alias) or Login (a GitHub login of a user or an organization).
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -356,7 +356,7 @@ function Assert-ShapeDefinition {
 function Test-ConfigShape {
     <#
     .SYNOPSIS
-    Checks a config against the shape of its stage and returns error messages (empty when the shape is valid).
+    Checks a config against its shape and returns error messages (empty when the shape is valid).
     .DESCRIPTION
     Every key of an object is required, unknown keys are errors (a top-level $schema is allowed), and every value must
     match its node. The items of an array marked Unique must not repeat: the strings, or the values of its ItemKey,
@@ -408,7 +408,7 @@ function Get-ShapeRecommendation {
 }
 
 function Get-ShapeRuleField {
-    # Path -> node of every field whose stage rule takes exceptions (RuleExceptions), in shape order.
+    # Path -> node of every field whose engine rule takes exceptions (RuleExceptions), in shape order.
     param([Parameter(Mandatory)][hashtable]$Node)
     return Find-ShapeField -Node $Node -Match { param($field) $field.RuleExceptions }
 }
@@ -479,7 +479,7 @@ function Get-ShapeValue {
 function Get-ExceptionShape {
     <#
     .SYNOPSIS
-    The shape of the exceptions list of a stage: deliberate, dated deviations from the recommended values of Shape, or
+    The shape of the exceptions list of a config: deliberate, dated deviations from the recommended values of Shape, or
     items of its lists marked ItemExceptions that break a rule of the engine.
     #>
     [CmdletBinding()]
@@ -638,7 +638,7 @@ function Get-RecommendationReport {
 function Get-ItemExceptionReport {
     <#
     .SYNOPSIS
-    Applies the exceptions for the items of one list to the findings of a stage rule on that list. Returns
+    Applies the exceptions for the items of one list to the findings of an engine rule on that list. Returns
     {NotWaived, Warnings, Waivers}: a finding without an exception in force is not waived (the engine decides whether
     that is an error or a warning); an exception in force is a waiver line; an exception for an item without a finding,
     or for an item the list does not hold, is a warning.
@@ -710,7 +710,7 @@ function Get-ItemExceptionReport {
 function Get-RuleExceptionReport {
     <#
     .SYNOPSIS
-    Applies the exception for one field to the finding of a stage rule on that field (a field marked RuleExceptions).
+    Applies the exception for one field to the finding of an engine rule on that field (a field marked RuleExceptions).
     Returns {NotWaived, Warnings, Waivers} as Get-ItemExceptionReport does: a finding without an exception in force is
     not waived; an exception in force is a waiver line; an exception while the rule holds is a warning.
     .DESCRIPTION
@@ -838,7 +838,7 @@ function ConvertTo-SchemaNode {
 function ConvertTo-ConfigSchema {
     <#
     .SYNOPSIS
-    The JSON Schema (draft 2020-12) of a stage config, as text with LF line endings, for editor completion and hover.
+    The JSON Schema (draft 2020-12) of a config, as text with LF line endings, for editor completion and hover.
     .DESCRIPTION
     Generated from the same shape the validator uses; the validator stays the authority (rules between fields are not
     in the schema).

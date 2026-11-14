@@ -7,10 +7,9 @@ Run once on a new machine or clone, and again after a version changes; it skips 
 - Command-line tools (the Tools of dev-tools.psd1): the exact versions CI uses, through winget. Without winget (not
   Windows), it warns with what to install.
 - PowerShell modules (modules.lock.psd1 and the Modules of dev-tools.psd1): first a check that every dependency the
-  Gallery lists for a locked version is locked in the same file, with a version in its range, and listed before the
-  module in every <stage>/modules.psd1 that names it; then the exact versions for the current user with
-  Install-PSResource -SkipDependencyCheck, the Authenticode signature checked on Windows.
-- git config --local: core.hooksPath .githooks (the secret scan of the engined changes before every commit) and
+  Gallery lists for a locked version is locked in the same file, with a version in its range; then the exact versions
+  for the current user with Install-PSResource -SkipDependencyCheck, the Authenticode signature checked on Windows.
+- git config --local: core.hooksPath .githooks (the secret scan of the staged changes before every commit) and
   blame.ignoreRevsFile .git-blame-ignore-revs (git blame skips the formatting commits).
 
 winget changes PATH only for new sessions: open a new terminal before running the checks.
@@ -104,13 +103,9 @@ if (-not $ModulesOnly) {
 }
 
 $lock = Import-PowerShellDataFile -Path (Join-Path -Path $root -ChildPath 'modules.lock.psd1')
-$stageFiles = @(Get-ChildItem -Path $root -Filter modules.psd1 -Recurse -Depth 1 | ForEach-Object {
-        @{ Name = "$($_.Directory.Name)/modules.psd1"; Modules = @((Import-PowerShellDataFile -Path $_.FullName).Modules) }
-    })
 $moduleSets = [ordered]@{ 'modules.lock.psd1' = $lock; 'dev-tools.psd1' = $devTools.Modules }
 
-# Installs run with -SkipDependencyCheck, so every dependency the Gallery lists must be locked in the same file, and
-# come first in a stage: the Az modules import Az.Accounts themselves, the newest installed, unless one is loaded.
+# Installs run with -SkipDependencyCheck, so every dependency the Gallery lists must be locked in the same file.
 $findings = [System.Collections.Generic.List[string]]::new()
 foreach ($file in $moduleSets.Keys) {
     $set = $moduleSets[$file]
@@ -124,16 +119,6 @@ foreach ($file in $moduleSets.Keys) {
             }
             if (-not (Test-VersionInRange -Version $set[$dependency.Name] -Range $range)) {
                 $findings.Add("$name $($set[$name]) needs $($dependency.Name) $range; $file locks $($set[$dependency.Name]).")
-            }
-            if ($file -ne 'modules.lock.psd1') {
-                continue
-            }
-            foreach ($stage in $stageFiles | Where-Object { $_.Modules -contains $name }) {
-                $at = [array]::IndexOf($stage.Modules, $name)
-                $dependencyAt = [array]::IndexOf($stage.Modules, $dependency.Name)
-                if ($dependencyAt -lt 0 -or $dependencyAt -gt $at) {
-                    $findings.Add("$($stage.Name) must list $($dependency.Name) before $name, which imports it.")
-                }
             }
         }
     }
@@ -166,7 +151,7 @@ if ($ModulesOnly) {
     return
 }
 
-# Settings of this clone: the secret scan of the engined changes before every commit, and git blame skipping the
+# Settings of this clone: the secret scan of the staged changes before every commit, and git blame skipping the
 # formatting commits (GitHub reads .git-blame-ignore-revs by itself).
 $gitSettings = [ordered]@{
     'core.hooksPath'       = '.githooks'

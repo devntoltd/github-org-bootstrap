@@ -7,7 +7,7 @@ BeforeAll {
 
     # A candidate as Find-DependencyUpdate.ps1 writes it.
     function Get-TestCandidate {
-        param([string]$Name = 'Az.Accounts', [string]$Version = '5.6.0', [string]$Kind = 'Module', [string]$Until)
+        param([string]$Name = 'Example.Base', [string]$Version = '5.6.0', [string]$Kind = 'Module', [string]$Until)
 
         $candidate = [ordered]@{
             Kind = $Kind; Name = $Name; File = 'modules.lock.psd1'; Locked = '5.5.3'; Version = $Version
@@ -96,10 +96,10 @@ Describe 'Invoke-DependencyUpdateCheck.ps1' {
         @(Get-GhOption -Call $created[0] -Name '--label') | Should -Be @('dependency-update', 'enhancement')
         @(Get-GhOption -Call $created[0] -Name '--assignee') | Should -Be @('operator')
         $body = Get-GhOption -Call $created[0] -Name '--body'
-        $body | Should -Match '<!-- dependency-update: Az\.Accounts 5\.6\.0 -->'
+        $body | Should -Match '<!-- dependency-update: Example.Base 5\.6\.0 -->'
         $body | Should -Match '<!-- dependency-update: lychee 0\.25\.0 -->'
-        $body | Should -Match '\| Az\.Accounts \| module \| 5\.5\.3 \| 5\.6\.0 \| 2026-09-25 \| \[notes\]\(https://example\.test/Az\.Accounts/5\.6\.0\) \|'
-        $body | Should -Match 'Az\.Accounts 5\.7\.0 is in quarantine until 2026-10-09'
+        $body | Should -Match '\| Example.Base \| module \| 5\.5\.3 \| 5\.6\.0 \| 2026-09-25 \| \[notes\]\(https://example\.test/Example.Base/5\.6\.0\) \|'
+        $body | Should -Match 'Example.Base 5\.7\.0 is in quarantine until 2026-10-09'
         $body | Should -Match 'Tests and module imports on the new module versions: \*\*passed\*\* \(\[run\]\(https://example\.test/runs/1\)\)'
         $body | Should -Match '- \[ \] Review it\.'
         (Get-Content -Path $summary -Raw) | Should -Match 'Status: opened #9'
@@ -115,7 +115,7 @@ Describe 'Invoke-DependencyUpdateCheck.ps1' {
 
     It 'updates the open issue instead of opening another' {
         Write-TestCandidate -Candidate @(Get-TestCandidate)
-        $script:TestIssues = @(Get-TestIssue -Number 4 -Marker 'Az.Accounts 5.5.9')
+        $script:TestIssues = @(Get-TestIssue -Number 4 -Marker 'Example.Base 5.5.9')
 
         & $checkScript @arguments
 
@@ -123,12 +123,12 @@ Describe 'Invoke-DependencyUpdateCheck.ps1' {
         $edited = Get-GhCall 'issue edit'
         $edited.Count | Should -Be 1
         $edited[0][2] | Should -Be '4'
-        Get-GhOption -Call $edited[0] -Name '--body' | Should -Match 'dependency-update: Az\.Accounts 5\.6\.0'
+        Get-GhOption -Call $edited[0] -Name '--body' | Should -Match 'dependency-update: Example.Base 5\.6\.0'
     }
 
     It 'opens nothing while a closed issue holds every candidate' {
         Write-TestCandidate -Candidate @(Get-TestCandidate)
-        $script:TestIssues = @(Get-TestIssue -Number 3 -Marker 'Az.Accounts 5.6.0' -State 'CLOSED')
+        $script:TestIssues = @(Get-TestIssue -Number 3 -Marker 'Example.Base 5.6.0' -State 'CLOSED')
 
         & $checkScript @arguments
 
@@ -139,7 +139,7 @@ Describe 'Invoke-DependencyUpdateCheck.ps1' {
 
     It 'opens a new issue for a candidate no closed issue holds' {
         Write-TestCandidate -Candidate @((Get-TestCandidate), (Get-TestCandidate -Name 'Pester' -Version '6.3.0'))
-        $script:TestIssues = @(Get-TestIssue -Number 3 -Marker 'Az.Accounts 5.6.0' -State 'CLOSED')
+        $script:TestIssues = @(Get-TestIssue -Number 3 -Marker 'Example.Base 5.6.0' -State 'CLOSED')
 
         & $checkScript @arguments
 
@@ -167,7 +167,7 @@ Describe 'Invoke-DependencyUpdateCheck.ps1' {
 
     It 'changes nothing with -WhatIf when an issue is open' {
         Write-TestCandidate -Candidate @(Get-TestCandidate)
-        $script:TestIssues = @(Get-TestIssue -Number 4 -Marker 'Az.Accounts 5.5.9')
+        $script:TestIssues = @(Get-TestIssue -Number 4 -Marker 'Example.Base 5.5.9')
 
         & $checkScript @arguments -WhatIf
 
