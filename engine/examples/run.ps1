@@ -7,7 +7,7 @@ Runs the engine version pinned in engine.psd1 against github.json, both next to 
 .DESCRIPTION
 Copy this file and engine.psd1 into the repository that holds the organization's config. The engine is checked out at
 the pinned commit into .engine/ next to this script (git-ignore it) and reused while the pin is unchanged; the run
-stops when the pinned tag does not point at the pinned commit. The switches are those of engine/bootstrap.ps1.
+stops when the pinned tag does not point at the pinned commit, and when .engine/ has local changes. The switches are those of engine/bootstrap.ps1.
 
 .EXAMPLE
 ./run.ps1 -WhatIf
@@ -78,8 +78,27 @@ if (Test-Path -LiteralPath (Join-Path -Path $engine -ChildPath '.git')) {
         $head = $null
     }
 }
+# Run only the pinned engine as published, and never delete a file someone changed: an edited or added file in a
+# checkout stops the run before it is reused or replaced, and again after a new checkout (a post-checkout hook of the
+# user's git config). Untracked files are asked for whatever the git config says.
+function Assert-EngineUnchanged {
+    $changes = @(Invoke-Git -Arguments @('-C', $engine, 'status', '--porcelain', '--untracked-files=all') | Where-Object { $_ })
+    if ($changes) {
+        throw "$engine has local changes, so it is not the pinned engine:`n$($changes -join "`n")`nRemove $engine to check out the pinned engine again."
+    }
+}
+if ($head) {
+    Assert-EngineUnchanged
+}
 if ($head -cne $commit) {
     if (Test-Path -LiteralPath $engine) {
+        # Without a readable HEAD only an unfinished checkout (.engine/.git alone) is replaced; other files stay.
+        if (-not $head) {
+            $files = @(Get-ChildItem -LiteralPath $engine -Force | Where-Object { $_.Name -cne '.git' })
+            if ($files) {
+                throw "$engine is not a checkout of the engine and holds files:`n$($files.Name -join "`n")`nMove them elsewhere and remove $engine to check out the pinned engine."
+            }
+        }
         Remove-Item -LiteralPath $engine -Recurse -Force -WhatIf:$false
     }
     Invoke-Git -Arguments @('init', '-q', $engine) | Out-Null
@@ -89,6 +108,7 @@ if ($head -cne $commit) {
     if ($head -cne $commit) {
         throw "The engine checked out at $head, not at the pinned commit $commit."
     }
+    Assert-EngineUnchanged
 }
 
 $bootstrap = Join-Path -Path $engine -ChildPath 'engine/bootstrap.ps1'

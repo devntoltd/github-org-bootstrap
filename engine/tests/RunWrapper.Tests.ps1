@@ -25,7 +25,7 @@ Describe 'engine/examples/run.ps1' {
         Copy-Item -LiteralPath $script:source -Destination $script:run
         Set-Content -LiteralPath (Join-Path -Path $directory -ChildPath 'engine.psd1') -Value "@{ Repository = 'example-owner/github-org-bootstrap'; Tag = 'v1.0.0'; Commit = '$script:commit' }"
         # Shared with the mocks, whose bodies do not see this file's script scope: a closure keeps the reference.
-        $state = @{ Directory = $directory; Head = $null; TagLines = @("$script:commit`trefs/tags/v1.0.0"); Commit = $script:commit; Stub = $script:stub }
+        $state = @{ Directory = $directory; Head = $null; Status = @(); TagLines = @("$script:commit`trefs/tags/v1.0.0"); Commit = $script:commit; Stub = $script:stub }
         $script:state = $state
 
         Mock git { $global:LASTEXITCODE = 0; $state.TagLines }.GetNewClosure() -ParameterFilter { $args[0] -eq 'ls-remote' }
@@ -39,6 +39,8 @@ Describe 'engine/examples/run.ps1' {
             Set-Content -LiteralPath (Join-Path -Path $engine -ChildPath 'bootstrap.ps1') -Value $state.Stub
         }.GetNewClosure() -ParameterFilter { $args -contains 'checkout' }
         Mock git { $global:LASTEXITCODE = 0; $state.Head }.GetNewClosure() -ParameterFilter { $args -contains 'rev-parse' }
+        # Untracked files show only when asked for, as with status.showUntrackedFiles=no in the user's git config.
+        Mock git { $global:LASTEXITCODE = 0; if ($args -contains '--untracked-files=all') { $state.Status } }.GetNewClosure() -ParameterFilter { $args -contains 'status' }
 
         function Initialize-TestEngine {
             # A checkout already in place at $Head: .engine/.git and the stub engine.
@@ -78,6 +80,61 @@ Describe 'engine/examples/run.ps1' {
         & $script:run -WhatIf
 
         Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
+        Get-TestCall | Should -Not -BeNullOrEmpty
+    }
+
+    It 'stops when .engine at the pinned commit has local changes' {
+        Initialize-TestEngine -Head $script:commit
+        $script:state.Status = @(' M engine/src/Plan.ps1', '?? extra.ps1')
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*engine/src/Plan.ps1*extra.ps1*'
+        Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
+        Get-TestCall | Should -BeNullOrEmpty
+        Join-Path -Path $script:state.Directory -ChildPath '.engine/engine/bootstrap.ps1' | Should -Exist
+    }
+
+    It 'stops when .engine at another commit has local changes, before replacing it' {
+        Initialize-TestEngine -Head $script:other
+        $script:state.Status = @('?? extra.ps1')
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*extra.ps1*'
+        Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
+        Join-Path -Path $script:state.Directory -ChildPath '.engine/engine/bootstrap.ps1' | Should -Exist
+    }
+
+    It 'stops when a new checkout has local changes' {
+        # Such as a post-checkout hook of the user's git config would make.
+        $script:state.Status = @(' M engine/bootstrap.ps1')
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*engine/bootstrap.ps1*'
+        Get-TestCall | Should -BeNullOrEmpty
+    }
+
+    It 'stops when .engine is not a checkout and holds files' {
+        $file = Join-Path -Path $script:state.Directory -ChildPath '.engine/notes.txt'
+        New-Item -ItemType File -Path $file -Force | Out-Null
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*not a checkout*notes.txt*'
+        Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args[0] -eq 'init' }
+        $file | Should -Exist
+    }
+
+    It 'stops when .engine holds only a file named .git in another case' {
+        # Not git's metadata on a case-sensitive file system, so a file of the user.
+        $file = Join-Path -Path $script:state.Directory -ChildPath '.engine/.Git'
+        New-Item -ItemType File -Path $file -Force | Out-Null
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*not a checkout*.Git*'
+        $file | Should -Exist
+    }
+
+    It 'replaces .engine that holds only an unfinished checkout' {
+        # An interrupted first fetch: .engine/.git without a commit, so HEAD cannot be read.
+        New-Item -ItemType Directory -Path (Join-Path -Path $script:state.Directory -ChildPath '.engine/.git') -Force | Out-Null
+
+        & $script:run -WhatIf
+
+        Should -Invoke git -Times 1 -Exactly -ParameterFilter { $args -contains 'fetch' }
         Get-TestCall | Should -Not -BeNullOrEmpty
     }
 
