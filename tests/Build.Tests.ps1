@@ -12,8 +12,8 @@ Describe 'build.psd1' {
     }
 
     It 'has a check for every step of ci.yml and a step for every check' {
-        # Steps that prepare the job instead of checking anything.
-        $setupSteps = @('Install modules')
+        # Steps that check nothing: the preparation of a job and the release of main (tools/Publish-Release.ps1).
+        $setupSteps = @('Install modules', 'Publish release')
         $ciSteps = @(Select-String -Path (Join-Path -Path $root -ChildPath '.github/workflows/ci.yml') -Pattern '^\s*- name:\s*(.+?)\s*$' |
                 ForEach-Object { $_.Matches[0].Groups[1].Value } |
                 Where-Object { $_ -notin $setupSteps })

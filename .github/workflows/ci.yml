@@ -162,3 +162,27 @@ jobs:
       - name: Test and coverage
         shell: pwsh
         run: ./tools/Invoke-Coverage.ps1 -Output Detailed
+
+  # The merge of a release pull request (ModuleVersion raised, its CHANGELOG.md section in place) tags the commit and
+  # publishes the release; on any other commit of main the release exists and the script does nothing. Only main, never
+  # a pull request, and only after every other job of this run passed, so a failing commit is never tagged. A run by
+  # hand on main retries a release that stopped (docs/decisions/2026-11-14-release-workflow.md).
+  release:
+    name: Release
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [workflows, secrets, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # creates the tag and the GitHub Release; nothing else in this job writes
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: ./tools/Publish-Release.ps1

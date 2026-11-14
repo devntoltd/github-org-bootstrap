@@ -16,7 +16,7 @@
         @{ Name = 'tests'; Description = 'All tests with coverage'; Command = 'pwsh'; Arguments = @('-NoProfile', '-File', 'tools/Invoke-Coverage.ps1'); CiStep = 'Test and coverage' }
     )
     # The scripts of tools/ that are not checks, run with Parameters (splatted by name) first. The ones that write to
-    # GitHub without asking run with -WhatIf only: the real run is recurring.yml's. A hashtable, not an array: a
+    # GitHub without asking run with -WhatIf only: the real run is recurring.yml's (ci.yml's for the release). A hashtable, not an array: a
     # '-WhatIf' string in a splatted array binds as a positional value, not as the switch.
     Tools  = @(
         @{ Name = 'schemas'; Description = 'Regenerate the config schemas'; Script = 'tools/Build-ConfigSchema.ps1'; Parameters = @{} }
@@ -27,5 +27,6 @@
         @{ Name = 'endpoints'; Description = 'API endpoint catalog: status only'; Script = 'tools/Invoke-ApiEndpointCheck.ps1'; Parameters = @{ WhatIf = $true } }
         @{ Name = 'updates'; Description = 'Module and tool versions newer than the lock'; Script = 'tools/Find-DependencyUpdate.ps1'; Parameters = @{} }
         @{ Name = 'dependencies'; Description = 'Dependency update issue: status only'; Script = 'tools/Invoke-DependencyUpdateCheck.ps1'; Parameters = @{ WhatIf = $true } }
+        @{ Name = 'release'; Description = 'Release of ModuleVersion: status only'; Script = 'tools/Publish-Release.ps1'; Parameters = @{ WhatIf = $true } }
     )
 }
