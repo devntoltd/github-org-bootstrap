@@ -119,6 +119,15 @@ Describe 'engine/examples/run.ps1' {
         $file | Should -Exist
     }
 
+    It 'stops when .engine holds only a file named .git in another case' {
+        # Not git's metadata on a case-sensitive file system, so a file of the user.
+        $file = Join-Path -Path $script:state.Directory -ChildPath '.engine/.Git'
+        New-Item -ItemType File -Path $file -Force | Out-Null
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*not a checkout*.Git*'
+        $file | Should -Exist
+    }
+
     It 'replaces .engine that holds only an unfinished checkout' {
         # An interrupted first fetch: .engine/.git without a commit, so HEAD cannot be read.
         New-Item -ItemType Directory -Path (Join-Path -Path $script:state.Directory -ChildPath '.engine/.git') -Force | Out-Null

@@ -94,7 +94,7 @@ if ($head -cne $commit) {
     if (Test-Path -LiteralPath $engine) {
         # Without a readable HEAD only an unfinished checkout (.engine/.git alone) is replaced; other files stay.
         if (-not $head) {
-            $files = @(Get-ChildItem -LiteralPath $engine -Force | Where-Object { $_.Name -ne '.git' })
+            $files = @(Get-ChildItem -LiteralPath $engine -Force | Where-Object { $_.Name -cne '.git' })
             if ($files) {
                 throw "$engine is not a checkout of the engine and holds files:`n$($files.Name -join "`n")`nMove them elsewhere and remove $engine to check out the pinned engine."
             }
