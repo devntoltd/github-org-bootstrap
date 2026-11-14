@@ -67,7 +67,8 @@ Keep `github.json` in a private repository of your organization and run a pinned
    next to `github.json`, and add `.engine/` to its `.gitignore`. Set `$schema` in `github.json` to
    `./.engine/engine/github.schema.json`, the schema of the pinned engine once `run.ps1` has checked it out.
 2. Set `Tag` and `Commit` in `engine.psd1` to a release of this repository. `run.ps1` checks out exactly that commit
-   into `.engine/`, stops when the tag does not point at it, and never follows a branch.
+   into `.engine/`, stops when the tag does not point at it or when `.engine/` has local changes, and never follows
+   a branch.
 3. Run `./run.ps1 -WhatIf`, then `./run.ps1`. A CI job of that repository can run `./run.ps1 -ValidateOnly`, which needs
    git and access to github.com, but no gh and no credentials.
 4. If your ruleset requires a central workflow, keep its reference copy (such as

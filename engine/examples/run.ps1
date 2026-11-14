@@ -7,7 +7,7 @@ Runs the engine version pinned in engine.psd1 against github.json, both next to 
 .DESCRIPTION
 Copy this file and engine.psd1 into the repository that holds the organization's config. The engine is checked out at
 the pinned commit into .engine/ next to this script (git-ignore it) and reused while the pin is unchanged; the run
-stops when the pinned tag does not point at the pinned commit. The switches are those of engine/bootstrap.ps1.
+stops when the pinned tag does not point at the pinned commit, and when .engine/ has local changes. The switches are those of engine/bootstrap.ps1.
 
 .EXAMPLE
 ./run.ps1 -WhatIf
@@ -89,6 +89,12 @@ if ($head -cne $commit) {
     if ($head -cne $commit) {
         throw "The engine checked out at $head, not at the pinned commit $commit."
     }
+}
+
+# Run only the pinned engine as published: an edited or added file in .engine/ stops the run, kept for the user to see.
+$changes = @(Invoke-Git -Arguments @('-C', $engine, 'status', '--porcelain') | Where-Object { $_ })
+if ($changes) {
+    throw "$engine has local changes, so it is not the pinned engine:`n$($changes -join "`n")`nRemove $engine to check out the pinned engine again."
 }
 
 $bootstrap = Join-Path -Path $engine -ChildPath 'engine/bootstrap.ps1'

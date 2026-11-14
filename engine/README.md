@@ -164,6 +164,7 @@ Printed with the plan, also with `-WhatIf`; they never block the run.
 ## Troubleshooting
 
 - **`Cannot read the Actions settings of '<org>'` or `Cannot read the webhooks of '<org>'`:** gh lacks a scope, usually because it was removed after the previous run; run `gh auth refresh -h github.com -s admin:org,admin:org_hook` and re-run.
+- **`run.ps1` stops with `... .engine has local changes, so it is not the pinned engine`:** remove `.engine/` (copy out what you want to keep first) and run `./run.ps1` again, which checks out the pinned commit afresh. The wrapper runs only the engine as released, so an edited or added file there never runs against the organization; a change to the engine goes into this repository instead.
 - **`... differs from codeSecurity.name ... only in case`:** GitHub has the configuration under another spelling, and an update never renames it; use its spelling in `codeSecurity.name`, or rename it on the page the error names.
 - **`'<name>' is the name of a built-in GitHub (or an enterprise) code security configuration`:** configuration names are unique across the organization; choose another `codeSecurity.name`.
 - **`... differs from ruleset.name ... only in case`:** GitHub has the ruleset under another spelling, and an update never renames it; use its spelling in `ruleset.name`, or rename it on the page the error names.

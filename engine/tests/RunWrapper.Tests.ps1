@@ -25,7 +25,7 @@ Describe 'engine/examples/run.ps1' {
         Copy-Item -LiteralPath $script:source -Destination $script:run
         Set-Content -LiteralPath (Join-Path -Path $directory -ChildPath 'engine.psd1') -Value "@{ Repository = 'example-owner/github-org-bootstrap'; Tag = 'v1.0.0'; Commit = '$script:commit' }"
         # Shared with the mocks, whose bodies do not see this file's script scope: a closure keeps the reference.
-        $state = @{ Directory = $directory; Head = $null; TagLines = @("$script:commit`trefs/tags/v1.0.0"); Commit = $script:commit; Stub = $script:stub }
+        $state = @{ Directory = $directory; Head = $null; Status = @(); TagLines = @("$script:commit`trefs/tags/v1.0.0"); Commit = $script:commit; Stub = $script:stub }
         $script:state = $state
 
         Mock git { $global:LASTEXITCODE = 0; $state.TagLines }.GetNewClosure() -ParameterFilter { $args[0] -eq 'ls-remote' }
@@ -39,6 +39,7 @@ Describe 'engine/examples/run.ps1' {
             Set-Content -LiteralPath (Join-Path -Path $engine -ChildPath 'bootstrap.ps1') -Value $state.Stub
         }.GetNewClosure() -ParameterFilter { $args -contains 'checkout' }
         Mock git { $global:LASTEXITCODE = 0; $state.Head }.GetNewClosure() -ParameterFilter { $args -contains 'rev-parse' }
+        Mock git { $global:LASTEXITCODE = 0; $state.Status }.GetNewClosure() -ParameterFilter { $args -contains 'status' }
 
         function Initialize-TestEngine {
             # A checkout already in place at $Head: .engine/.git and the stub engine.
@@ -79,6 +80,16 @@ Describe 'engine/examples/run.ps1' {
 
         Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
         Get-TestCall | Should -Not -BeNullOrEmpty
+    }
+
+    It 'stops when .engine at the pinned commit has local changes' {
+        Initialize-TestEngine -Head $script:commit
+        $script:state.Status = @(' M engine/src/Plan.ps1', '?? extra.ps1')
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*engine/src/Plan.ps1*extra.ps1*'
+        Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args -contains 'fetch' }
+        Get-TestCall | Should -BeNullOrEmpty
+        Join-Path -Path $script:state.Directory -ChildPath '.engine/engine/bootstrap.ps1' | Should -Exist
     }
 
     It 'replaces .engine at another commit' {
