@@ -6,7 +6,7 @@ labels: [github-api-version, enhancement]
 assignees: [rodchenkov]
 ---
 
-Opened by `tools/Invoke-GitHubApiVersionCheck.ps1` (weekly workflow `.github/workflows/recurring.yml`) for the version in the title; opened by hand, put the version in the title. The pinned version is `$script:GitHubApiVersion` in `shared/Bootstrap.Common.psm1`, sent by `Invoke-GhApi` as `X-GitHub-Api-Version`; GitHub supports it for at least 24 months after a newer one is released.
+Opened by `tools/Invoke-GitHubApiVersionCheck.ps1` (weekly workflow `.github/workflows/recurring.yml`) for the version in the title; opened by hand, put the version in the title. The pinned version is `$script:GitHubApiVersion` in `shared/GitHubOrg.Common.psm1`, sent by `Invoke-GhApi` as `X-GitHub-Api-Version`; GitHub supports it for at least 24 months after a newer one is released.
 
 ## Steps
 
