@@ -1,7 +1,8 @@
 # A native stand-in for the GitHub CLI, put on PATH by Register-TestNativeGh (NativeGh.ps1); not a test file itself.
 # It runs as a separate process, so the caller gets what a real gh gives it: bytes on stdout and stderr, stdin and an
 # exit code. Answers from routes.json next to it, by "<METHOD> <endpoint>" for 'gh api' and by the joined arguments
-# otherwise ('--version'); records every call in calls.jsonl.
+# otherwise ('--version'); records every call in calls.jsonl. Linux and macOS only: on Windows the gh.exe that
+# NativeGh.ps1 builds does the same in C#, so a change here goes there too.
 $ErrorActionPreference = 'Stop'
 
 $arguments = [string[]]$args
