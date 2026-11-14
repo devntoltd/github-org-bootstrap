@@ -102,6 +102,33 @@ Describe 'engine/examples/run.ps1' {
         Join-Path -Path $script:state.Directory -ChildPath '.engine/engine/bootstrap.ps1' | Should -Exist
     }
 
+    It 'stops when a new checkout has local changes' {
+        # Such as a post-checkout hook of the user's git config would make.
+        $script:state.Status = @(' M engine/bootstrap.ps1')
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*has local changes*engine/bootstrap.ps1*'
+        Get-TestCall | Should -BeNullOrEmpty
+    }
+
+    It 'stops when .engine is not a checkout and holds files' {
+        $file = Join-Path -Path $script:state.Directory -ChildPath '.engine/notes.txt'
+        New-Item -ItemType File -Path $file -Force | Out-Null
+
+        { & $script:run -WhatIf } | Should -Throw '*.engine*not a checkout*notes.txt*'
+        Should -Invoke git -Times 0 -Exactly -ParameterFilter { $args[0] -eq 'init' }
+        $file | Should -Exist
+    }
+
+    It 'replaces .engine that holds only an unfinished checkout' {
+        # An interrupted first fetch: .engine/.git without a commit, so HEAD cannot be read.
+        New-Item -ItemType Directory -Path (Join-Path -Path $script:state.Directory -ChildPath '.engine/.git') -Force | Out-Null
+
+        & $script:run -WhatIf
+
+        Should -Invoke git -Times 1 -Exactly -ParameterFilter { $args -contains 'fetch' }
+        Get-TestCall | Should -Not -BeNullOrEmpty
+    }
+
     It 'replaces .engine at another commit' {
         Initialize-TestEngine -Head $script:other
 
