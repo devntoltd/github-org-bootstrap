@@ -20,8 +20,8 @@ the web UI.
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'WhatIf is forwarded to Invoke-GitHubOrgBootstrap, which calls ShouldProcess.')]
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    # The config of the organization; it lives in the organization's own repository, never in the engine.
-    [Parameter(Mandatory)]
+    # The config of the organization; it lives in the organization's own repository, never in the engine. Required: not
+    # Mandatory, so that a run without it gets an error that names the example instead of PowerShell's prompt.
     [string]$ConfigPath,
 
     [switch]$Force,
@@ -40,6 +40,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+if (-not $ConfigPath) {
+    throw '-ConfigPath is required: the config of the organization, such as -ConfigPath ./github.json. Start from a copy of engine/examples/github.json.'
+}
 
 # The engine needs no PowerShell modules besides shared.
 Import-Module (Join-Path -Path $PSScriptRoot -ChildPath '../shared/Bootstrap.Common.psm1') -Force

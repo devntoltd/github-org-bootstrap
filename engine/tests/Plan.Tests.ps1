@@ -810,8 +810,8 @@ Describe 'Get-GitHubOrgWarningItem' {
 
 Describe 'Get-ManualSummary' {
     It 'counts the manual settings: <Expected>' -ForEach @(
-        @{ Count = 2; Expected = 'Manual: 2 settings have no API read; this run did not check them. List them: ./engine/bootstrap.ps1 -ConfigPath <config> -WhatIf -ManualChecklist' }
-        @{ Count = 1; Expected = 'Manual: 1 setting has no API read; this run did not check them. List them: ./engine/bootstrap.ps1 -ConfigPath <config> -WhatIf -ManualChecklist' }
+        @{ Count = 2; Expected = 'Manual: 2 settings have no API read; this run did not check them. List them: rerun with -WhatIf -ManualChecklist.' }
+        @{ Count = 1; Expected = 'Manual: 1 setting has no API read; this run did not check them. List them: rerun with -WhatIf -ManualChecklist.' }
     ) {
         $summary = InModuleScope GitHubOrg -Parameters @{ Count = $Count } {
             $saved = $script:SettingDefinitions
